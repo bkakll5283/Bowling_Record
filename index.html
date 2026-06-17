@@ -18,43 +18,49 @@
       --border: #2e4055;
     }
 
+    html, body {
+      height: 100%;
+      height: 100dvh;
+      overflow: hidden;
+    }
+
     body {
       background: var(--bg);
       color: var(--text);
       font-family: "Microsoft JhengHei", Arial, sans-serif;
-      min-height: 100dvh;
       display: flex;
       flex-direction: column;
       align-items: center;
-      padding: 12px 12px 0;
+      padding: 8px 10px;
       max-width: 480px;
       margin: 0 auto;
+      gap: 6px;
     }
 
     /* ── 頂部計分卡 ── */
     .mini-card {
       width: 100%;
       background: var(--card);
-      border-radius: 10px;
-      padding: 8px 6px 6px;
-      margin-bottom: 12px;
+      border-radius: 8px;
+      padding: 5px 5px 4px;
       border: 1px solid var(--border);
+      flex-shrink: 0;
     }
 
     /* 每列用 Grid，5 格等寬 */
     .mini-row {
       display: grid;
       grid-template-columns: repeat(5, 1fr);
-      gap: 3px;
-      margin-bottom: 2px;
+      gap: 2px;
+      margin-bottom: 1px;
     }
 
     .mini-header-cell {
       text-align: center;
-      font-size: .65rem;
+      font-size: .6rem;
       color: var(--muted);
       font-weight: 600;
-      padding: 2px 0;
+      padding: 1px 0;
     }
 
     .frame-cell {
@@ -77,18 +83,18 @@
       justify-content: flex-end;
       gap: 1px;
       background: #0f1923;
-      padding: 2px 2px 1px;
-      min-height: 22px;
+      padding: 1px 2px 1px;
+      min-height: 18px;
     }
 
     .ball-box {
       flex: 1;
       min-width: 0;
-      height: 20px;
+      height: 16px;
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: .7rem;
+      font-size: .65rem;
       font-weight: bold;
       border-radius: 2px;
       background: #0f1923;
@@ -100,27 +106,29 @@
 
     .score-row {
       background: var(--card);
-      font-size: .8rem;
+      font-size: .72rem;
       font-weight: bold;
       color: var(--accent);
       text-align: center;
-      padding: 3px 0;
-      min-height: 22px;
+      padding: 2px 0;
+      min-height: 18px;
     }
 
     /* ── 球員選擇 ── */
     .player-row {
       display: flex;
       align-items: center;
-      gap: 10px;
+      gap: 8px;
       background: var(--card);
       border: 1px solid var(--border);
-      border-radius: 10px;
-      padding: 10px 14px;
+      border-radius: 8px;
+      padding: 6px 10px;
+      width: 100%;
+      flex-shrink: 0;
     }
 
     .player-label {
-      font-size: .85rem;
+      font-size: .8rem;
       color: var(--muted);
       white-space: nowrap;
       font-weight: 600;
@@ -131,17 +139,16 @@
       background: var(--bg);
       color: var(--text);
       border: 1px solid var(--border);
-      border-radius: 7px;
-      padding: 8px 10px;
-      font-size: 1rem;
+      border-radius: 6px;
+      padding: 5px 28px 5px 8px;
+      font-size: .9rem;
       font-family: inherit;
       outline: none;
       appearance: none;
       -webkit-appearance: none;
       background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath fill='%237f8c9a' d='M6 8L0 0h12z'/%3E%3C/svg%3E");
       background-repeat: no-repeat;
-      background-position: right 12px center;
-      padding-right: 32px;
+      background-position: right 10px center;
     }
 
     #playerSelect:focus { border-color: var(--accent); }
@@ -152,17 +159,19 @@
       flex: 1;
       display: flex;
       flex-direction: column;
-      gap: 12px;
+      gap: 4px;
+      min-height: 0;
     }
 
     /* 局別標題 */
     .frame-title {
       text-align: center;
-      font-size: 1.6rem;
+      font-size: 1.3rem;
       font-weight: bold;
       letter-spacing: 3px;
       color: var(--accent);
-      padding: 4px 0;
+      padding: 2px 0;
+      flex-shrink: 0;
     }
 
     /* 目前局的球道顯示 */
@@ -170,18 +179,19 @@
       display: flex;
       justify-content: center;
       gap: 10px;
-      padding: 10px 0;
+      padding: 4px 0 20px;
+      flex-shrink: 0;
     }
 
     .cur-ball {
-      width: 54px;
-      height: 54px;
+      width: 46px;
+      height: 46px;
       border: 2px solid var(--border);
       border-radius: 8px;
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 1.6rem;
+      font-size: 1.4rem;
       font-weight: bold;
       background: var(--card);
       color: var(--text);
@@ -196,8 +206,8 @@
 
     .ball-label {
       position: absolute;
-      bottom: -18px;
-      font-size: .65rem;
+      bottom: -16px;
+      font-size: .6rem;
       color: var(--muted);
       white-space: nowrap;
     }
@@ -205,12 +215,12 @@
     /* 累計分顯示 */
     .score-display {
       text-align: center;
-      margin-top: 8px;
+      flex-shrink: 0;
     }
 
-    .score-display .label { font-size: .8rem; color: var(--muted); }
+    .score-display .label { font-size: .75rem; color: var(--muted); }
     .score-display .value {
-      font-size: 2.8rem;
+      font-size: 2rem;
       font-weight: bold;
       color: var(--text);
       line-height: 1.1;
@@ -222,15 +232,15 @@
     .keypad {
       display: grid;
       grid-template-columns: repeat(4, 1fr);
-      gap: 8px;
-      padding: 8px 0 16px;
+      gap: 6px;
+      flex: 1;
+      min-height: 0;
     }
 
     .key {
-      aspect-ratio: 1.2;
       border: none;
       border-radius: 10px;
-      font-size: 1.3rem;
+      font-size: 1.2rem;
       font-weight: bold;
       cursor: pointer;
       display: flex;
@@ -238,6 +248,7 @@
       justify-content: center;
       transition: transform .1s, background .15s;
       user-select: none;
+      min-height: 0;
     }
 
     .key:active { transform: scale(.92); }
@@ -256,29 +267,31 @@
       display: none;
       flex-direction: column;
       align-items: center;
-      gap: 14px;
+      justify-content: center;
+      gap: 12px;
       width: 100%;
-      padding: 10px 0;
+      flex: 1;
+      min-height: 0;
       text-align: center;
     }
 
     .done-panel.show { display: flex; }
 
     .done-score {
-      font-size: 4rem;
+      font-size: 3rem;
       font-weight: bold;
       color: var(--accent);
       line-height: 1;
     }
 
-    .done-label { font-size: 1rem; color: var(--muted); }
+    .done-label { font-size: .9rem; color: var(--muted); }
 
     .btn {
       width: 100%;
-      padding: 16px;
+      padding: 12px;
       border: none;
       border-radius: 10px;
-      font-size: 1.1rem;
+      font-size: 1rem;
       font-weight: bold;
       cursor: pointer;
       transition: background .2s, transform .1s;
@@ -310,7 +323,8 @@
       width: 100%;
       height: 1px;
       background: var(--border);
-      margin: 2px 0;
+      margin: 1px 0;
+      flex-shrink: 0;
     }
   </style>
 </head>
