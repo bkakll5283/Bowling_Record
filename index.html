@@ -467,6 +467,54 @@
     }
 
     .trend-bar.latest { opacity: 1; background: var(--strike); }
+
+    /* ══ 修改確認 Modal ══ */
+    .modal-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,.6);
+      z-index: 100;
+      align-items: center;
+      justify-content: center;
+    }
+    .modal-overlay.show { display: flex; }
+
+    .modal-box {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 22px 20px 16px;
+      width: min(320px, 90vw);
+      text-align: center;
+    }
+
+    .modal-title {
+      font-size: 1rem;
+      font-weight: bold;
+      color: var(--text);
+      margin-bottom: 8px;
+    }
+
+    .modal-body {
+      font-size: .85rem;
+      color: var(--muted);
+      margin-bottom: 18px;
+      line-height: 1.5;
+    }
+
+    .modal-body strong { color: var(--accent); }
+
+    .modal-btns {
+      display: flex;
+      gap: 10px;
+    }
+
+    .modal-btns .btn { flex: 1; padding: 10px; font-size: .95rem; }
+
+    /* 已完成的局可點擊 */
+    .frame-cell.done { cursor: pointer; }
+    .frame-cell.done:hover { border-color: var(--accent); opacity: .85; }
   </style>
 </head>
 <body>
@@ -579,6 +627,18 @@
   </div>
 </div>
 
+<!-- ══ 修改確認 Modal ══ -->
+<div class="modal-overlay" id="editModal">
+  <div class="modal-box">
+    <div class="modal-title">重新輸入分數</div>
+    <div class="modal-body" id="editModalBody"></div>
+    <div class="modal-btns">
+      <button class="btn btn-secondary" id="editModalCancel">取消</button>
+      <button class="btn btn-primary" id="editModalConfirm">確認修改</button>
+    </div>
+  </div>
+</div>
+
 <!-- ══ 底部導航 ══ -->
 <nav class="nav-bar">
   <button class="nav-btn active" data-page="pageRecord">
@@ -659,8 +719,160 @@ function updateMiniFrame(f, ballStrs, cumScore) {
 function updateActiveFrame() {
   for (let i = 0; i < 10; i++) {
     const fc = document.getElementById(`fc${i}`);
-    if (fc) fc.className = "frame-cell" + (i < curFrame ? " done" : i === curFrame ? " active" : "");
+    if (!fc) continue;
+    fc.className = "frame-cell" + (i < curFrame ? " done" : i === curFrame ? " active" : "");
+    // 已完成的局綁定點擊修改
+    fc.onclick = i < curFrame ? () => askEditFrame(i) : null;
   }
+}
+
+// ── 編輯模式狀態 ──
+let editingFrame = -1;   // -1 = 正常模式，>=0 = 正在編輯某局
+let editBalls   = [];    // 編輯中的球
+
+function askEditFrame(frameIdx) {
+  document.getElementById("editModalBody").innerHTML =
+    `重新輸入 <strong>${FRAME_NAMES[frameIdx]}</strong> 的分數。<br>其他局分數不受影響。`;
+  document.getElementById("editModal").classList.add("show");
+  document.getElementById("editModal").dataset.target = frameIdx;
+}
+
+document.getElementById("editModalCancel").addEventListener("click", () => {
+  document.getElementById("editModal").classList.remove("show");
+});
+
+document.getElementById("editModalConfirm").addEventListener("click", () => {
+  document.getElementById("editModal").classList.remove("show");
+  const frameIdx = parseInt(document.getElementById("editModal").dataset.target, 10);
+  enterEditMode(frameIdx);
+});
+
+// ── 進入編輯模式 ──
+function enterEditMode(frameIdx) {
+  editingFrame = frameIdx;
+  editBalls = [];
+  // 標題顯示「修改第X局」
+  document.getElementById("frameTitle").textContent = "修改" + FRAME_NAMES[frameIdx];
+  document.getElementById("frameTitle").style.color = "var(--strike)";
+  // 清空該局 mini 卡顯示
+  const maxBalls = frameIdx === 9 ? 3 : 2;
+  for (let b = 0; b < maxBalls; b++) {
+    const el = document.getElementById(`bb${frameIdx}${b}`);
+    if (el) { el.textContent = ""; el.className = "ball-box"; }
+  }
+  document.getElementById(`ms${frameIdx}`).textContent = "";
+  renderEditBalls();
+  buildEditKeypad();
+}
+
+// ── 渲染編輯中的球格 ──
+function renderEditBalls() {
+  const container = document.getElementById("currentBalls");
+  container.innerHTML = "";
+  const total = editingFrame === 9 ? 3 : 2;
+  for (let b = 0; b < total; b++) {
+    const val = editBalls[b];
+    let cls = "cur-ball";
+    if (val === undefined)  cls += " waiting";
+    else if (val === "X")   cls += " strike-box";
+    else if (val === "/")   cls += " spare-box";
+    else                    cls += " filled";
+    const div = document.createElement("div");
+    div.className = cls;
+    div.textContent = val !== undefined ? val : "";
+    const lbl = document.createElement("span");
+    lbl.className = "ball-label";
+    lbl.textContent = `第${["一","二","三"][b]}球`;
+    div.appendChild(lbl);
+    container.appendChild(div);
+  }
+  // 更新 mini 卡
+  updateMiniFrame(editingFrame, editBalls, null);
+}
+
+// ── 判斷編輯局是否完成 ──
+function isEditFrameDone() {
+  const f = editingFrame;
+  if (f < 9) return editBalls[0] === "X" || editBalls.length >= 2;
+  if (editBalls.length < 2) return false;
+  const needs3 = editBalls[0] === "X" || editBalls[1] === "/";
+  return needs3 ? editBalls.length >= 3 : editBalls.length >= 2;
+}
+
+// ── 完成編輯，寫回 frames 並重算 ──
+function finishEdit() {
+  frames[editingFrame] = { b1: editBalls[0], b2: editBalls[1], b3: editBalls[2] };
+  editingFrame = -1;
+  editBalls = [];
+  // 恢復標題顏色
+  document.getElementById("frameTitle").style.color = "";
+  // 重新整理整個計分卡顯示
+  updateScoreDisplay();
+  updateActiveFrame();
+  updateTitle();
+  renderCurrentBalls();
+  buildKeypad();
+}
+
+// ── 編輯模式鍵盤 ──
+function buildEditKeypad() {
+  const pad = document.getElementById("keypad");
+  pad.innerHTML = "";
+  const ballIdx = editBalls.length;
+  const f = editingFrame;
+  let maxPins = 10;
+  if (f < 9) {
+    if (ballIdx === 1 && editBalls[0] !== "X") maxPins = 10 - rawToValue(editBalls[0], 0);
+  } else {
+    if (ballIdx === 1 && editBalls[0] !== "X") maxPins = 10 - rawToValue(editBalls[0], 0);
+    else if (ballIdx === 2 && editBalls[0] === "X" && editBalls[1] !== "X")
+      maxPins = 10 - rawToValue(editBalls[1], 0);
+  }
+  const canSpare   = ballIdx === 1 && editBalls[0] !== "X";
+  const canSpare10 = f === 9 && ballIdx === 2 && editBalls[0] === "X" && editBalls[1] !== "X" && editBalls[1] !== "/";
+
+  const keys = [
+    {label:"1",val:"1"},{label:"2",val:"2"},{label:"3",val:"3"},{label:"X",val:"X",cls:"key-strike"},
+    {label:"4",val:"4"},{label:"5",val:"5"},{label:"6",val:"6"},{label:"/",val:"/",cls:"key-spare"},
+    {label:"7",val:"7"},{label:"8",val:"8"},{label:"9",val:"9"},{label:"0",val:"0"},
+    {label:"-",val:"-",cls:"key-gutter"},{label:"",val:"",cls:"key-gutter",disabled:true},
+    {label:"",val:"",cls:"key-gutter",disabled:true},{label:"⌫",val:"DEL",cls:"key-del"},
+  ];
+
+  keys.forEach(k => {
+    const btn = document.createElement("button");
+    btn.className = "key " + (k.cls || "key-num");
+    btn.textContent = k.label;
+    let dis = k.disabled || false;
+    if (!dis && k.val !== "DEL" && k.val !== "") {
+      if (k.val === "X") {
+        const ok0  = ballIdx === 0;
+        const ok10 = f === 9 && (ballIdx === 0 ||
+          (ballIdx === 1 && editBalls[0] === "X") ||
+          (ballIdx === 2 && (editBalls[1] === "X" || editBalls[1] === "/")));
+        dis = f < 9 ? !ok0 : !ok10;
+      } else if (k.val === "/") {
+        dis = !(canSpare || canSpare10);
+      } else if (k.val !== "-") {
+        dis = parseInt(k.val, 10) > maxPins;
+      }
+    }
+    if (dis) btn.disabled = true;
+    btn.addEventListener("click", () => handleEditInput(k.val));
+    pad.appendChild(btn);
+  });
+}
+
+function handleEditInput(val) {
+  if (val === "DEL") {
+    if (editBalls.length > 0) { editBalls.pop(); renderEditBalls(); buildEditKeypad(); }
+    return;
+  }
+  if (val === "") return;
+  editBalls.push(val);
+  renderEditBalls();
+  buildEditKeypad();
+  if (isEditFrameDone()) setTimeout(finishEdit, 420);
 }
 
 function renderCurrentBalls() {
@@ -821,6 +1033,7 @@ function buildKeypad() {
 }
 
 function handleInput(val) {
+  if (editingFrame >= 0) { handleEditInput(val); return; }
   if (val === "DEL") {
     if (curBalls.length > 0) {
       curBalls.pop();
