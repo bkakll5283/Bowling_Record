@@ -468,6 +468,108 @@
 
     .trend-bar.latest { opacity: 1; background: var(--strike); }
 
+    /* ══ 進步趨勢線 ══ */
+    .trend-svg-wrap {
+      width: 100%;
+      height: 60px;
+      margin-top: 6px;
+    }
+
+    /* ══ 排行榜 ══ */
+    .lb-item {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 10px 14px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .lb-rank {
+      font-size: 1.2rem;
+      font-weight: bold;
+      width: 28px;
+      text-align: center;
+      flex-shrink: 0;
+    }
+
+    .lb-rank.gold   { color: #f1c40f; }
+    .lb-rank.silver { color: #bdc3c7; }
+    .lb-rank.bronze { color: #cd7f32; }
+    .lb-rank.other  { color: var(--muted); }
+
+    .lb-name { font-weight: bold; font-size: .95rem; flex: 1; }
+    .lb-games { font-size: .72rem; color: var(--muted); }
+
+    .lb-scores {
+      text-align: right;
+      flex-shrink: 0;
+    }
+
+    .lb-best { font-size: 1.3rem; font-weight: bold; color: var(--accent); }
+    .lb-avg  { font-size: .72rem; color: var(--muted); }
+
+    /* ══ 對戰比較 ══ */
+    .vs-header {
+      display: grid;
+      grid-template-columns: 1fr auto 1fr;
+      align-items: center;
+      gap: 8px;
+      flex-shrink: 0;
+    }
+
+    .vs-select-wrap { display: flex; flex-direction: column; gap: 4px; }
+    .vs-select-wrap label { font-size: .7rem; color: var(--muted); text-align: center; }
+
+    .vs-badge {
+      font-size: 1rem;
+      font-weight: bold;
+      color: var(--muted);
+      text-align: center;
+    }
+
+    .vs-list {
+      flex: 1;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .vs-row {
+      display: grid;
+      grid-template-columns: 1fr auto 1fr;
+      align-items: center;
+      gap: 6px;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 10px 12px;
+    }
+
+    .vs-val {
+      font-size: 1.3rem;
+      font-weight: bold;
+      text-align: center;
+    }
+
+    .vs-val.win  { color: var(--spare); }
+    .vs-val.lose { color: var(--muted); opacity: .6; }
+    .vs-val.tie  { color: var(--accent); }
+
+    .vs-label {
+      font-size: .7rem;
+      color: var(--muted);
+      text-align: center;
+    }
+
+    /* ══ 刪除提示 ══ */
+    .history-item.deleting {
+      border-color: #e74c3c;
+      background: #2e1a1a;
+    }
+
     /* ══ 修改確認 Modal ══ */
     .modal-overlay {
       display: none;
@@ -627,6 +729,45 @@
   </div>
 </div>
 
+<!-- ══ 比較頁 ══ -->
+<div class="page" id="pageVs">
+  <div class="page-title">對戰比較</div>
+  <div class="vs-header">
+    <div class="vs-select-wrap">
+      <label>球員 A</label>
+      <select class="select-sm" id="vsSelectA">
+        <option value="">請選擇</option>
+        <option>李岱柏</option><option>李咨亨</option><option>孫世展</option>
+        <option>邱晉倫</option><option>吳媮珊</option><option>劉伯鴻</option>
+        <option>孫世益</option><option>張雅雰</option><option>莊哲嘉</option>
+        <option>邱朝昱</option><option>陳騰九</option>
+      </select>
+    </div>
+    <div class="vs-badge">VS</div>
+    <div class="vs-select-wrap">
+      <label>球員 B</label>
+      <select class="select-sm" id="vsSelectB">
+        <option value="">請選擇</option>
+        <option>李岱柏</option><option>李咨亨</option><option>孫世展</option>
+        <option>邱晉倫</option><option>吳媮珊</option><option>劉伯鴻</option>
+        <option>孫世益</option><option>張雅雰</option><option>莊哲嘉</option>
+        <option>邱朝昱</option><option>陳騰九</option>
+      </select>
+    </div>
+  </div>
+  <button class="btn-sm" id="btnLoadVs" style="width:100%">比較</button>
+  <div class="vs-list" id="vsList"><div class="empty-hint">請選擇兩位球員後按比較</div></div>
+</div>
+
+<!-- ══ 排行榜頁 ══ -->
+<div class="page" id="pageLeaderboard">
+  <div class="page-title">排行榜</div>
+  <div class="history-player-row" style="justify-content:flex-end">
+    <button class="btn-sm" id="btnLoadLeaderboard">重新整理</button>
+  </div>
+  <div class="stats-list" id="leaderboardList"><div class="empty-hint">載入中…</div></div>
+</div>
+
 <!-- ══ 修改確認 Modal ══ -->
 <div class="modal-overlay" id="editModal">
   <div class="modal-box">
@@ -635,6 +776,18 @@
     <div class="modal-btns">
       <button class="btn btn-secondary" id="editModalCancel">取消</button>
       <button class="btn btn-primary" id="editModalConfirm">確認修改</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ 刪除確認 Modal ══ -->
+<div class="modal-overlay" id="deleteModal">
+  <div class="modal-box">
+    <div class="modal-title">刪除紀錄</div>
+    <div class="modal-body" id="deleteModalBody"></div>
+    <div class="modal-btns">
+      <button class="btn btn-secondary" id="deleteModalCancel">取消</button>
+      <button class="btn" id="deleteModalConfirm" style="background:#e74c3c;color:#fff;flex:1;padding:10px;font-size:.95rem">刪除</button>
     </div>
   </div>
 </div>
@@ -650,8 +803,16 @@
     歷史
   </button>
   <button class="nav-btn" data-page="pageStats">
-    <svg viewBox="0 0 24 24"><path d="M19 3H5a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2V5a2 2 0 00-2-2zm-7 11H7v-2h5v2zm3-4H7V8h8v2z"/></svg>
+    <svg viewBox="0 0 24 24"><path d="M5 9.2h3V19H5zM10.6 5h2.8v14h-2.8zm5.6 8H19v6h-2.8z"/></svg>
     統計
+  </button>
+  <button class="nav-btn" data-page="pageVs">
+    <svg viewBox="0 0 24 24"><path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z"/></svg>
+    比較
+  </button>
+  <button class="nav-btn" data-page="pageLeaderboard">
+    <svg viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+    排行
   </button>
 </nav>
 
@@ -1104,31 +1265,118 @@ document.getElementById("btnSubmit").addEventListener("click", async () => {
 
 document.getElementById("btnRestart").addEventListener("click", doReset);
 
+// ══ 共用：取得球員統計資料 ══
+async function fetchPlayerStats(player) {
+  const res = await fetch(`${APPS_SCRIPT_URL}?action=history&player=${encodeURIComponent(player)}`);
+  const data = await res.json();
+  const records = data.records || [];
+  const totals = records.map(r => parseInt(r.total, 10)).filter(n => !isNaN(n));
+  let strikeFrames = 0, spareFrames = 0, totalFrames = 0;
+  records.forEach(r => {
+    if (!r.frames) return;
+    r.frames.forEach(fr => {
+      if (!fr.b1) return;
+      totalFrames++;
+      if (fr.b1 === "X") strikeFrames++;
+      else if (fr.b2 === "/") spareFrames++;
+    });
+  });
+  return { records, totals, strikeFrames, spareFrames, totalFrames };
+}
+
 // ══ 歷史查詢 ══
-document.getElementById("btnLoadHistory").addEventListener("click", async () => {
-  const player = document.getElementById("historySelect").value;
+let currentHistoryPlayer = "";
+let currentHistoryRecords = [];
+
+async function loadHistory(player) {
   const list = document.getElementById("historyList");
-  if (!player) { list.innerHTML = `<div class="empty-hint">請先選擇球員</div>`; return; }
   list.innerHTML = `<div class="loading-hint">載入中…</div>`;
   try {
-    const res = await fetch(`${APPS_SCRIPT_URL}?action=history&player=${encodeURIComponent(player)}`);
-    const data = await res.json();
-    if (!data.records || data.records.length === 0) {
-      list.innerHTML = `<div class="empty-hint">尚無紀錄</div>`; return;
-    }
-    list.innerHTML = data.records.slice().reverse().map(r => {
-      const d = String(r.date).replace(/T[\s\S]*/, "").replace(/-/g, "/");
-      return `
-      <div class="history-item">
-        <div>
-          <div class="history-date">${d}</div>
-          <div class="history-frames">${r.balls}</div>
-        </div>
-        <div class="history-score">${r.total}</div>
-      </div>`;
-    }).join("");
+    const { records } = await fetchPlayerStats(player);
+    currentHistoryPlayer = player;
+    currentHistoryRecords = records.slice().reverse(); // 最新在前
+    renderHistoryList();
   } catch(e) {
     list.innerHTML = `<div class="empty-hint">載入失敗，請確認網路或 Apps Script URL</div>`;
+  }
+}
+
+function renderHistoryList() {
+  const list = document.getElementById("historyList");
+  if (!currentHistoryRecords.length) { list.innerHTML = `<div class="empty-hint">尚無紀錄</div>`; return; }
+  list.innerHTML = currentHistoryRecords.map((r, idx) => {
+    const d = String(r.date).replace(/T[\s\S]*/, "").replace(/-/g, "/");
+    return `
+    <div class="history-item" data-idx="${idx}">
+      <div>
+        <div class="history-date">${d}</div>
+        <div class="history-frames">${r.balls}</div>
+      </div>
+      <div class="history-score">${r.total}</div>
+    </div>`;
+  }).join("");
+
+  // 長按刪除
+  let pressTimer;
+  list.querySelectorAll(".history-item").forEach(item => {
+    const startPress = () => {
+      item.classList.add("deleting");
+      pressTimer = setTimeout(() => askDelete(parseInt(item.dataset.idx)), 600);
+    };
+    const cancelPress = () => {
+      clearTimeout(pressTimer);
+      item.classList.remove("deleting");
+    };
+    item.addEventListener("touchstart", startPress, { passive: true });
+    item.addEventListener("touchend", cancelPress);
+    item.addEventListener("touchmove", cancelPress, { passive: true });
+    item.addEventListener("mousedown", startPress);
+    item.addEventListener("mouseup", cancelPress);
+    item.addEventListener("mouseleave", cancelPress);
+  });
+}
+
+document.getElementById("btnLoadHistory").addEventListener("click", () => {
+  const player = document.getElementById("historySelect").value;
+  if (!player) { document.getElementById("historyList").innerHTML = `<div class="empty-hint">請先選擇球員</div>`; return; }
+  loadHistory(player);
+});
+
+// ══ 刪除 ══
+let deleteTargetIdx = -1;
+
+function askDelete(idx) {
+  deleteTargetIdx = idx;
+  const r = currentHistoryRecords[idx];
+  const d = String(r.date).replace(/T[\s\S]*/, "").replace(/-/g, "/");
+  document.getElementById("deleteModalBody").innerHTML =
+    `確定要刪除 <strong>${d}</strong> 得分 <strong>${r.total}</strong> 的紀錄嗎？`;
+  document.getElementById("deleteModal").classList.add("show");
+}
+
+document.getElementById("deleteModalCancel").addEventListener("click", () => {
+  document.getElementById("deleteModal").classList.remove("show");
+  deleteTargetIdx = -1;
+  renderHistoryList();
+});
+
+document.getElementById("deleteModalConfirm").addEventListener("click", async () => {
+  document.getElementById("deleteModal").classList.remove("show");
+  if (deleteTargetIdx < 0) return;
+  const r = currentHistoryRecords[deleteTargetIdx];
+  const originalIdx = currentHistoryRecords.length - 1 - deleteTargetIdx; // 原始順序 index（由舊到新）
+  document.getElementById("historyList").innerHTML = `<div class="loading-hint">刪除中…</div>`;
+  try {
+    await fetch(APPS_SCRIPT_URL, {
+      method: "POST", mode: "no-cors",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ action: "delete", player: currentHistoryPlayer, recordIndex: originalIdx })
+    });
+    currentHistoryRecords.splice(deleteTargetIdx, 1);
+    deleteTargetIdx = -1;
+    renderHistoryList();
+  } catch(e) {
+    document.getElementById("historyList").innerHTML = `<div class="empty-hint">刪除失敗</div>`;
   }
 });
 
@@ -1139,41 +1387,60 @@ document.getElementById("btnLoadStats").addEventListener("click", async () => {
   if (!player) { sl.innerHTML = `<div class="empty-hint">請先選擇球員</div>`; return; }
   sl.innerHTML = `<div class="loading-hint">載入中…</div>`;
   try {
-    const res = await fetch(`${APPS_SCRIPT_URL}?action=history&player=${encodeURIComponent(player)}`);
-    const data = await res.json();
-    if (!data.records || data.records.length === 0) {
-      sl.innerHTML = `<div class="empty-hint">尚無紀錄</div>`; return;
-    }
-    const totals = data.records.map(r => parseInt(r.total, 10)).filter(n => !isNaN(n));
+    const { totals, strikeFrames, spareFrames, totalFrames } = await fetchPlayerStats(player);
+    if (!totals.length) { sl.innerHTML = `<div class="empty-hint">尚無紀錄</div>`; return; }
+
     const avg   = Math.round(totals.reduce((a,b) => a+b, 0) / totals.length);
     const best  = Math.max(...totals);
     const worst = Math.min(...totals);
     const games = totals.length;
-
-    // 計算全倒率、補中率
-    let strikeFrames = 0, spareFrames = 0, totalFrames = 0, openFrames = 0;
-    data.records.forEach(r => {
-      if (!r.frames) return;
-      r.frames.forEach((fr, fi) => {
-        if (!fr.b1) return;
-        totalFrames++;
-        if (fr.b1 === "X") {
-          strikeFrames++;
-        } else if (fr.b2 === "/") {
-          spareFrames++;
-        } else {
-          openFrames++;
-        }
-      });
-    });
     const strikeRate = totalFrames ? Math.round(strikeFrames / totalFrames * 100) : 0;
     const spareRate  = totalFrames ? Math.round(spareFrames / (totalFrames - strikeFrames || 1) * 100) : 0;
 
-    const recent5 = totals.slice(-5);
-    const maxT = Math.max(...recent5, 1);
-    const bars = recent5.map((v, i) =>
-      `<div class="trend-bar${i===recent5.length-1?' latest':''}" style="height:${Math.round(v/maxT*100)}%"></div>`
-    ).join("");
+    // 進步幅度：最近10場線性迴歸
+    const recent10 = totals.slice(-10);
+    const n = recent10.length;
+    const trendHtml = (() => {
+      if (n < 2) return "";
+      const xMean = (n - 1) / 2;
+      const yMean = recent10.reduce((a,b) => a+b, 0) / n;
+      let num = 0, den = 0;
+      recent10.forEach((y, x) => { num += (x - xMean) * (y - yMean); den += (x - xMean) ** 2; });
+      const slope = den ? num / den : 0;
+      const slopeText = slope > 0.5 ? `↑ 進步中 (+${slope.toFixed(1)}/場)`
+                      : slope < -0.5 ? `↓ 退步中 (${slope.toFixed(1)}/場)`
+                      : "→ 平穩";
+      const slopeColor = slope > 0.5 ? "var(--spare)" : slope < -0.5 ? "#e74c3c" : "var(--muted)";
+
+      const minV = Math.min(...recent10), maxV = Math.max(...recent10, minV + 1);
+      const W = 260, H = 50, pad = 6;
+      const pts = recent10.map((v, i) => {
+        const x = pad + i * (W - pad*2) / (n-1);
+        const y = H - pad - (v - minV) / (maxV - minV) * (H - pad*2);
+        return `${x.toFixed(1)},${y.toFixed(1)}`;
+      }).join(" ");
+      // 趨勢線端點
+      const x0 = pad, x1 = W - pad;
+      const y0 = H - pad - (slope * (0 - xMean) + yMean - minV) / (maxV - minV) * (H - pad*2);
+      const y1 = H - pad - (slope * (n-1 - xMean) + yMean - minV) / (maxV - minV) * (H - pad*2);
+
+      return `<div class="stat-card">
+        <div class="stat-card-title">進步幅度（最近 ${n} 場）<span style="color:${slopeColor};margin-left:6px">${slopeText}</span></div>
+        <svg width="100%" viewBox="0 0 ${W} ${H}" style="overflow:visible;margin-top:4px">
+          <polyline points="${pts}" fill="none" stroke="var(--accent)" stroke-width="2" stroke-linejoin="round"/>
+          <line x1="${x0}" y1="${y0.toFixed(1)}" x2="${x1}" y2="${y1.toFixed(1)}"
+                stroke="${slopeColor}" stroke-width="1.5" stroke-dasharray="4,3" opacity=".8"/>
+          ${recent10.map((v, i) => {
+            const x = pad + i * (W - pad*2) / (n-1);
+            const y = H - pad - (v - minV) / (maxV - minV) * (H - pad*2);
+            return `<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="3" fill="${i===n-1?'var(--strike)':'var(--accent)'}"/>`;
+          }).join("")}
+        </svg>
+        <div class="stat-card-sub" style="margin-top:4px">
+          ${recent10.map((v,i) => `<span style="color:${i===n-1?'var(--strike)':'var(--muted)'}">${v}</span>`).join("→")}
+        </div>
+      </div>`;
+    })();
 
     sl.innerHTML = `
       <div class="stat-card">
@@ -1182,38 +1449,110 @@ document.getElementById("btnLoadStats").addEventListener("click", async () => {
         <div class="stat-card-sub">共 ${games} 場紀錄</div>
       </div>
       <div class="stat-grid">
-        <div class="stat-card">
-          <div class="stat-card-title">最高分</div>
-          <div class="stat-card-value">${best}</div>
-        </div>
-        <div class="stat-card">
-          <div class="stat-card-title">最低分</div>
-          <div class="stat-card-value">${worst}</div>
-        </div>
+        <div class="stat-card"><div class="stat-card-title">最高分</div><div class="stat-card-value">${best}</div></div>
+        <div class="stat-card"><div class="stat-card-title">最低分</div><div class="stat-card-value">${worst}</div></div>
       </div>
       <div class="stat-grid">
         <div class="stat-card">
           <div class="stat-card-title">全倒率</div>
           <div class="stat-card-value" style="color:var(--strike)">${strikeRate}%</div>
-          <div class="stat-card-sub">${strikeFrames} / ${totalFrames} 局</div>
+          <div class="stat-card-sub">${strikeFrames}/${totalFrames} 局</div>
         </div>
         <div class="stat-card">
           <div class="stat-card-title">補中率</div>
           <div class="stat-card-value" style="color:var(--spare)">${spareRate}%</div>
-          <div class="stat-card-sub">${spareFrames} / ${totalFrames - strikeFrames} 局</div>
+          <div class="stat-card-sub">${spareFrames}/${totalFrames-strikeFrames} 局</div>
         </div>
       </div>
-      <div class="stat-card">
-        <div class="stat-card-title">近期趨勢（最近 ${recent5.length} 場）</div>
-        <div class="trend-bars">${bars}</div>
-        <div class="stat-card-sub" style="margin-top:8px">
-          ${recent5.map((v,i) => `<span style="color:${i===recent5.length-1?'var(--strike)':'var(--muted)'}">${v}</span>`).join(" → ")}
-        </div>
-      </div>`;
+      ${trendHtml}`;
   } catch(e) {
     sl.innerHTML = `<div class="empty-hint">載入失敗，請確認網路或 Apps Script URL</div>`;
   }
 });
+
+// ══ 對戰比較 ══
+document.getElementById("btnLoadVs").addEventListener("click", async () => {
+  const pA = document.getElementById("vsSelectA").value;
+  const pB = document.getElementById("vsSelectB").value;
+  const vl = document.getElementById("vsList");
+  if (!pA || !pB) { vl.innerHTML = `<div class="empty-hint">請選擇兩位球員</div>`; return; }
+  if (pA === pB)  { vl.innerHTML = `<div class="empty-hint">請選擇不同的球員</div>`; return; }
+  vl.innerHTML = `<div class="loading-hint">載入中…</div>`;
+  try {
+    const [sA, sB] = await Promise.all([fetchPlayerStats(pA), fetchPlayerStats(pB)]);
+    if (!sA.totals.length || !sB.totals.length) {
+      vl.innerHTML = `<div class="empty-hint">其中一位球員尚無紀錄</div>`; return;
+    }
+    const calc = s => ({
+      avg: Math.round(s.totals.reduce((a,b)=>a+b,0)/s.totals.length),
+      best: Math.max(...s.totals),
+      games: s.totals.length,
+      strikeRate: s.totalFrames ? Math.round(s.strikeFrames/s.totalFrames*100) : 0,
+      spareRate:  s.totalFrames ? Math.round(s.spareFrames/(s.totalFrames-s.strikeFrames||1)*100) : 0,
+    });
+    const a = calc(sA), b = calc(sB);
+
+    const row = (labelA, valA, label, valB, labelB, higherWins = true) => {
+      const na = parseFloat(valA), nb = parseFloat(valB);
+      let clsA = "tie", clsB = "tie";
+      if (!isNaN(na) && !isNaN(nb) && na !== nb) {
+        const aWins = higherWins ? na > nb : na < nb;
+        clsA = aWins ? "win" : "lose";
+        clsB = aWins ? "lose" : "win";
+      }
+      return `<div class="vs-row">
+        <div class="vs-val ${clsA}">${valA}</div>
+        <div class="vs-label">${label}</div>
+        <div class="vs-val ${clsB}">${valB}</div>
+      </div>`;
+    };
+
+    vl.innerHTML = `
+      <div class="vs-row" style="background:none;border:none;padding:4px 0">
+        <div style="text-align:center;font-weight:bold;color:var(--spare)">${pA}</div>
+        <div></div>
+        <div style="text-align:center;font-weight:bold;color:var(--accent)">${pB}</div>
+      </div>
+      ${row(pA, a.avg,         "平均分",  b.avg,         pB)}
+      ${row(pA, a.best,        "最高分",  b.best,        pB)}
+      ${row(pA, a.games,       "場數",    b.games,       pB)}
+      ${row(pA, a.strikeRate+"%","全倒率", b.strikeRate+"%",pB)}
+      ${row(pA, a.spareRate+"%", "補中率", b.spareRate+"%",pB)}`;
+  } catch(e) {
+    vl.innerHTML = `<div class="empty-hint">載入失敗，請確認網路或 Apps Script URL</div>`;
+  }
+});
+
+// ══ 排行榜 ══
+async function loadLeaderboard() {
+  const ll = document.getElementById("leaderboardList");
+  ll.innerHTML = `<div class="loading-hint">載入中…</div>`;
+  try {
+    const res = await fetch(`${APPS_SCRIPT_URL}?action=leaderboard`);
+    const data = await res.json();
+    if (!data.entries || !data.entries.length) { ll.innerHTML = `<div class="empty-hint">尚無紀錄</div>`; return; }
+    const rankSymbol = i => i===0?"🥇":i===1?"🥈":i===2?"🥉":`${i+1}`;
+    const rankCls    = i => i===0?"gold":i===1?"silver":i===2?"bronze":"other";
+    ll.innerHTML = data.entries.map((e, i) => `
+      <div class="lb-item">
+        <div class="lb-rank ${rankCls(i)}">${rankSymbol(i)}</div>
+        <div>
+          <div class="lb-name">${e.player}</div>
+          <div class="lb-games">${e.games} 場</div>
+        </div>
+        <div class="lb-scores">
+          <div class="lb-best">${e.best}</div>
+          <div class="lb-avg">均 ${e.avg}</div>
+        </div>
+      </div>`).join("");
+  } catch(e) {
+    ll.innerHTML = `<div class="empty-hint">載入失敗，請確認網路或 Apps Script URL</div>`;
+  }
+}
+
+document.getElementById("btnLoadLeaderboard").addEventListener("click", loadLeaderboard);
+// 切換到排行頁自動載入
+document.querySelector("[data-page='pageLeaderboard']").addEventListener("click", loadLeaderboard);
 
 // ── 啟動 ──
 buildMiniTable(); updateActiveFrame(); updateTitle(); renderCurrentBalls(); buildKeypad();
