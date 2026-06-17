@@ -351,13 +351,13 @@ let rolls = [];       // 展平的數值陣列（用來算累計分）
 // ── 初始化迷你計分卡（兩列：1-5局、6-10局）──
 function buildMiniTable() {
   function buildHalf(headerEl, ballsEl, scoresEl, startIdx, endIdx) {
-    headerEl.innerHTML = `<th style="width:22px;color:var(--muted);font-size:.6rem"></th>` +
+    headerEl.innerHTML =
       FRAME_NAMES.slice(startIdx, endIdx).map((n, ii) => {
         const i = startIdx + ii;
         return `<th id="mh${i}" style="font-size:.6rem;padding:2px 1px">${n.slice(1)}</th>`;
       }).join("");
 
-    ballsEl.innerHTML = `<td style="font-size:.6rem;color:var(--muted);padding:2px 1px">球</td>` +
+    ballsEl.innerHTML =
       Array.from({length: endIdx - startIdx}, (_, ii) => {
         const i = startIdx + ii;
         return `<td>
@@ -371,7 +371,7 @@ function buildMiniTable() {
         </td>`;
       }).join("");
 
-    scoresEl.innerHTML = `<td style="font-size:.6rem;color:var(--muted);padding:2px 1px">分</td>` +
+    scoresEl.innerHTML =
       Array.from({length: endIdx - startIdx}, (_, ii) => {
         const i = startIdx + ii;
         return `<td><div class="score-row" id="ms${i}"></div></td>`;
