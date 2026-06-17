@@ -41,23 +41,20 @@
       border: 1px solid var(--border);
     }
 
-    .mini-card table {
-      width: 100%;
-      border-collapse: collapse;
-      font-size: .7rem;
+    /* 每列用 Grid，5 格等寬 */
+    .mini-row {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 3px;
+      margin-bottom: 2px;
     }
 
-    .mini-card th {
+    .mini-header-cell {
+      text-align: center;
+      font-size: .65rem;
       color: var(--muted);
       font-weight: 600;
       padding: 2px 0;
-      text-align: center;
-      font-size: .65rem;
-    }
-
-    .mini-card td {
-      text-align: center;
-      padding: 1px 0;
     }
 
     .frame-cell {
@@ -81,12 +78,13 @@
       gap: 1px;
       background: #0f1923;
       padding: 2px 2px 1px;
-      min-height: 20px;
+      min-height: 22px;
     }
 
     .ball-box {
-      width: 18px;
-      height: 18px;
+      flex: 1;
+      min-width: 0;
+      height: 20px;
       display: flex;
       align-items: center;
       justify-content: center;
@@ -106,8 +104,8 @@
       font-weight: bold;
       color: var(--accent);
       text-align: center;
-      padding: 2px 0;
-      min-height: 20px;
+      padding: 3px 0;
+      min-height: 22px;
     }
 
     /* ── 球員選擇 ── */
@@ -165,13 +163,6 @@
       letter-spacing: 3px;
       color: var(--accent);
       padding: 4px 0;
-    }
-
-    .frame-subtitle {
-      text-align: center;
-      font-size: .85rem;
-      color: var(--muted);
-      margin-top: -8px;
     }
 
     /* 目前局的球道顯示 */
@@ -328,23 +319,17 @@
 <!-- 頂部迷你計分卡 -->
 <div class="mini-card">
   <!-- 第1~5局 -->
-  <table id="miniTable1" style="width:100%;border-collapse:collapse;margin-bottom:4px">
-    <thead><tr id="miniHeaders1"></tr></thead>
-    <tbody>
-      <tr id="miniBalls1"></tr>
-      <tr><td colspan="6" style="padding:0"><div class="divider"></div></td></tr>
-      <tr id="miniScores1"></tr>
-    </tbody>
-  </table>
+  <div id="miniHeaders1" class="mini-row"></div>
+  <div id="miniBalls1"   class="mini-row"></div>
+  <div class="divider" style="margin:2px 0"></div>
+  <div id="miniScores1"  class="mini-row"></div>
+  <!-- 間隔 -->
+  <div style="height:6px"></div>
   <!-- 第6~10局 -->
-  <table id="miniTable2" style="width:100%;border-collapse:collapse;margin-top:2px">
-    <thead><tr id="miniHeaders2"></tr></thead>
-    <tbody>
-      <tr id="miniBalls2"></tr>
-      <tr><td colspan="6" style="padding:0"><div class="divider"></div></td></tr>
-      <tr id="miniScores2"></tr>
-    </tbody>
-  </table>
+  <div id="miniHeaders2" class="mini-row"></div>
+  <div id="miniBalls2"   class="mini-row"></div>
+  <div class="divider" style="margin:2px 0"></div>
+  <div id="miniScores2"  class="mini-row"></div>
 </div>
 
 <!-- 主輸入區 -->
@@ -369,7 +354,6 @@
   </div>
 
   <div class="frame-title" id="frameTitle">第一局</div>
-  <div class="frame-subtitle" id="frameSubtitle">第 1 球</div>
 
   <div class="current-balls" id="currentBalls"></div>
 
@@ -411,27 +395,25 @@ function buildMiniTable() {
     headerEl.innerHTML =
       FRAME_NAMES.slice(startIdx, endIdx).map((n, ii) => {
         const i = startIdx + ii;
-        return `<th id="mh${i}" style="font-size:.6rem;padding:2px 1px">${n.slice(1)}</th>`;
+        return `<div id="mh${i}" class="mini-header-cell">${n.slice(1)}</div>`;
       }).join("");
 
     ballsEl.innerHTML =
       Array.from({length: endIdx - startIdx}, (_, ii) => {
         const i = startIdx + ii;
-        return `<td>
-          <div class="frame-cell${i===0?' active':''}" id="fc${i}">
-            <div class="balls-row" id="fb${i}">
-              <div class="ball-box" id="bb${i}0">-</div>
-              <div class="ball-box" id="bb${i}1">-</div>
-              ${i===9?`<div class="ball-box" id="bb${i}2">-</div>`:""}
-            </div>
+        return `<div class="frame-cell${i===0?' active':''}" id="fc${i}">
+          <div class="balls-row" id="fb${i}">
+            <div class="ball-box" id="bb${i}0"></div>
+            <div class="ball-box" id="bb${i}1"></div>
+            ${i===9?`<div class="ball-box" id="bb${i}2"></div>`:""}
           </div>
-        </td>`;
+        </div>`;
       }).join("");
 
     scoresEl.innerHTML =
       Array.from({length: endIdx - startIdx}, (_, ii) => {
         const i = startIdx + ii;
-        return `<td><div class="score-row" id="ms${i}"></div></td>`;
+        return `<div class="score-row" id="ms${i}"></div>`;
       }).join("");
   }
 
@@ -512,9 +494,6 @@ function renderCurrentBalls() {
 // ── 局別標題 ──
 function updateTitle() {
   document.getElementById("frameTitle").textContent = FRAME_NAMES[curFrame];
-  const ballIdx = curBalls.length + 1;
-  const ballNames = ["一","二","三"];
-  document.getElementById("frameSubtitle").textContent = `第 ${ballNames[ballIdx-1] || "?"} 球`;
 }
 
 // ── 數字轉換 ──
