@@ -801,7 +801,12 @@ function buildKeypad() {
     if (!dis && k.val !== "DEL" && k.val !== "") {
       if (k.val === "X") {
         const ok0 = ballIdx === 0;
-        const ok10 = curFrame === 9 && (ballIdx === 0 || (ballIdx === 1 && curBalls[0] === "X") || (ballIdx === 2 && curBalls[1] === "X"));
+        // 第10局第三球：第1球是X且第2球也是X，或第2球是/（補中後可全倒）
+        const ok10 = curFrame === 9 && (
+          ballIdx === 0 ||
+          (ballIdx === 1 && curBalls[0] === "X") ||
+          (ballIdx === 2 && (curBalls[1] === "X" || curBalls[1] === "/"))
+        );
         dis = curFrame < 9 ? !ok0 : !ok10;
       } else if (k.val === "/") {
         dis = !(canSpare || canSpare10);
@@ -899,8 +904,7 @@ document.getElementById("btnLoadHistory").addEventListener("click", async () => 
       list.innerHTML = `<div class="empty-hint">尚無紀錄</div>`; return;
     }
     list.innerHTML = data.records.slice().reverse().map(r => {
-      // 只取 yyyy-mm-dd 數字部分
-      const d = String(r.date).replace(/T.*/, "").replace(/-/g, "/");
+      const d = String(r.date).replace(/T[\s\S]*/, "").replace(/-/g, "/");
       return `
       <div class="history-item">
         <div>
