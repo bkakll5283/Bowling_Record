@@ -1,0 +1,753 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <title>保齡球得分記錄</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
+    :root {
+      --bg: #0f1923;
+      --card: #1b2a3a;
+      --accent: #3b9ede;
+      --strike: #e8a020;
+      --spare: #27ae60;
+      --text: #ecf0f1;
+      --muted: #7f8c9a;
+      --border: #2e4055;
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: "Microsoft JhengHei", Arial, sans-serif;
+      min-height: 100dvh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 12px 12px 0;
+      max-width: 480px;
+      margin: 0 auto;
+    }
+
+    /* ── 頂部計分卡 ── */
+    .mini-card {
+      width: 100%;
+      background: var(--card);
+      border-radius: 10px;
+      padding: 8px 6px 6px;
+      margin-bottom: 12px;
+      border: 1px solid var(--border);
+    }
+
+    .mini-card table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: .7rem;
+    }
+
+    .mini-card th {
+      color: var(--muted);
+      font-weight: 600;
+      padding: 2px 0;
+      text-align: center;
+      font-size: .65rem;
+    }
+
+    .mini-card td {
+      text-align: center;
+      padding: 1px 0;
+    }
+
+    .frame-cell {
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      overflow: hidden;
+    }
+
+    .frame-cell.active {
+      border-color: var(--accent);
+      box-shadow: 0 0 6px rgba(59,158,222,.5);
+    }
+
+    .frame-cell.done {
+      border-color: var(--border);
+    }
+
+    .balls-row {
+      display: flex;
+      justify-content: flex-end;
+      gap: 1px;
+      background: #0f1923;
+      padding: 2px 2px 1px;
+      min-height: 20px;
+    }
+
+    .ball-box {
+      width: 18px;
+      height: 18px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: .7rem;
+      font-weight: bold;
+      border-radius: 2px;
+      background: #0f1923;
+      color: var(--text);
+    }
+
+    .ball-box.strike { color: var(--strike); }
+    .ball-box.spare  { color: var(--spare);  }
+
+    .score-row {
+      background: var(--card);
+      font-size: .8rem;
+      font-weight: bold;
+      color: var(--accent);
+      text-align: center;
+      padding: 2px 0;
+      min-height: 20px;
+    }
+
+    /* ── 主輸入區 ── */
+    .main-panel {
+      width: 100%;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    /* 局別標題 */
+    .frame-title {
+      text-align: center;
+      font-size: 1.6rem;
+      font-weight: bold;
+      letter-spacing: 3px;
+      color: var(--accent);
+      padding: 4px 0;
+    }
+
+    .frame-subtitle {
+      text-align: center;
+      font-size: .85rem;
+      color: var(--muted);
+      margin-top: -8px;
+    }
+
+    /* 目前局的球道顯示 */
+    .current-balls {
+      display: flex;
+      justify-content: center;
+      gap: 10px;
+      padding: 10px 0;
+    }
+
+    .cur-ball {
+      width: 54px;
+      height: 54px;
+      border: 2px solid var(--border);
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.6rem;
+      font-weight: bold;
+      background: var(--card);
+      color: var(--text);
+      position: relative;
+      transition: border-color .2s, background .2s;
+    }
+
+    .cur-ball.filled { border-color: var(--accent); background: #1f3548; }
+    .cur-ball.strike-box { border-color: var(--strike); color: var(--strike); background: #2a1f0a; }
+    .cur-ball.spare-box  { border-color: var(--spare);  color: var(--spare);  background: #0a2018; }
+    .cur-ball.waiting    { border-style: dashed; opacity: .4; }
+
+    .ball-label {
+      position: absolute;
+      bottom: -18px;
+      font-size: .65rem;
+      color: var(--muted);
+      white-space: nowrap;
+    }
+
+    /* 累計分顯示 */
+    .score-display {
+      text-align: center;
+      margin-top: 8px;
+    }
+
+    .score-display .label { font-size: .8rem; color: var(--muted); }
+    .score-display .value {
+      font-size: 2.8rem;
+      font-weight: bold;
+      color: var(--text);
+      line-height: 1.1;
+    }
+
+    .score-display .pending { color: var(--muted); font-size: 1rem; }
+
+    /* ── 數字鍵盤 ── */
+    .keypad {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 8px;
+      padding: 8px 0 16px;
+    }
+
+    .key {
+      aspect-ratio: 1.2;
+      border: none;
+      border-radius: 10px;
+      font-size: 1.3rem;
+      font-weight: bold;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: transform .1s, background .15s;
+      user-select: none;
+    }
+
+    .key:active { transform: scale(.92); }
+
+    .key-num    { background: var(--card); color: var(--text); border: 1px solid var(--border); }
+    .key-num:hover { background: #253a4e; }
+    .key-strike { background: #7a4e10; color: var(--strike); font-size: 1.5rem; }
+    .key-spare  { background: #0d4228; color: var(--spare);  font-size: 1.5rem; }
+    .key-del    { background: #2e1a1a; color: #e74c3c; font-size: 1.1rem; }
+    .key-gutter { background: var(--card); color: var(--muted); border: 1px solid var(--border); }
+
+    .key:disabled { opacity: .25; cursor: default; }
+
+    /* ── 完成畫面 ── */
+    .done-panel {
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      gap: 14px;
+      width: 100%;
+      padding: 10px 0;
+      text-align: center;
+    }
+
+    .done-panel.show { display: flex; }
+
+    .done-score {
+      font-size: 4rem;
+      font-weight: bold;
+      color: var(--accent);
+      line-height: 1;
+    }
+
+    .done-label { font-size: 1rem; color: var(--muted); }
+
+    .btn {
+      width: 100%;
+      padding: 16px;
+      border: none;
+      border-radius: 10px;
+      font-size: 1.1rem;
+      font-weight: bold;
+      cursor: pointer;
+      transition: background .2s, transform .1s;
+    }
+    .btn:active { transform: scale(.97); }
+    .btn-primary { background: var(--accent); color: #fff; }
+    .btn-primary:hover { background: #2a87c8; }
+    .btn-secondary { background: var(--card); color: var(--muted); border: 1px solid var(--border); }
+
+    /* 狀態訊息 */
+    #msg {
+      text-align: center;
+      font-size: .9rem;
+      font-weight: bold;
+      min-height: 20px;
+      color: var(--spare);
+      padding: 4px 0 8px;
+    }
+    #msg.error { color: #e74c3c; }
+
+    /* ── 過場動畫 ── */
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(20px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    .fade-up { animation: fadeUp .35s ease both; }
+
+    .divider {
+      width: 100%;
+      height: 1px;
+      background: var(--border);
+      margin: 2px 0;
+    }
+  </style>
+</head>
+<body>
+
+<!-- 頂部迷你計分卡 -->
+<div class="mini-card">
+  <table id="miniTable">
+    <thead>
+      <tr id="miniHeaders"></tr>
+    </thead>
+    <tbody>
+      <tr id="miniBalls"></tr>
+      <tr><td colspan="11" style="padding:0"><div class="divider"></div></td></tr>
+      <tr id="miniScores"></tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- 主輸入區 -->
+<div class="main-panel" id="inputPanel">
+  <div class="frame-title" id="frameTitle">第一局</div>
+  <div class="frame-subtitle" id="frameSubtitle">第 1 球</div>
+
+  <div class="current-balls" id="currentBalls"></div>
+
+  <div class="score-display">
+    <div class="label">目前總分</div>
+    <div id="scoreValue" class="value">—</div>
+  </div>
+
+  <div class="divider"></div>
+
+  <!-- 數字鍵盤 -->
+  <div class="keypad" id="keypad"></div>
+</div>
+
+<!-- 完成後畫面 -->
+<div class="done-panel" id="donePanel">
+  <div class="done-label">最終得分</div>
+  <div class="done-score" id="finalScore">—</div>
+  <div id="msg"></div>
+  <button class="btn btn-primary" id="btnSubmit">📤 上傳到試算表</button>
+  <button class="btn btn-secondary" id="btnRestart">重新開始</button>
+</div>
+
+<script>
+// ── 設定 ──
+const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzLp481U1ynLSJ0f8SZxygvrTPOy50yckjsQMuwgils4zSGay86ApVljwzifnHFb2U5Aw/exec";
+const FRAME_NAMES = ["第一局","第二局","第三局","第四局","第五局",
+                     "第六局","第七局","第八局","第九局","第十局"];
+
+// ── 狀態 ──
+let frames = [];      // [{b1:"X",b2:"",b3:""}, ...]  已完成的局
+let curBalls = [];    // 目前局輸入中的球 (字串陣列)
+let curFrame = 0;     // 0–9
+let rolls = [];       // 展平的數值陣列（用來算累計分）
+
+// ── 初始化迷你計分卡 ──
+function buildMiniTable() {
+  const headers = document.getElementById("miniHeaders");
+  const ballsRow = document.getElementById("miniBalls");
+  const scoresRow = document.getElementById("miniScores");
+
+  headers.innerHTML = `<th style="width:28px;color:var(--muted);font-size:.6rem"></th>` +
+    FRAME_NAMES.map((n,i) =>
+      `<th id="mh${i}" style="font-size:.6rem;padding:2px 1px">${n.slice(1)}</th>`
+    ).join("");
+
+  ballsRow.innerHTML = `<td style="font-size:.6rem;color:var(--muted);padding:2px 1px">球</td>` +
+    Array.from({length:10}, (_,i) => `
+      <td>
+        <div class="frame-cell${i===0?' active':''}" id="fc${i}">
+          <div class="balls-row" id="fb${i}">
+            <div class="ball-box" id="bb${i}0">-</div>
+            <div class="ball-box" id="bb${i}1">-</div>
+            ${i===9?`<div class="ball-box" id="bb${i}2">-</div>`:""}
+          </div>
+        </div>
+      </td>`).join("");
+
+  scoresRow.innerHTML = `<td style="font-size:.6rem;color:var(--muted);padding:2px 1px">分</td>` +
+    Array.from({length:10}, (_,i) =>
+      `<td><div class="score-row" id="ms${i}"></div></td>`
+    ).join("");
+}
+
+// ── 更新迷你計分卡某一局 ──
+function updateMiniFrame(f, ballStrs, cumScore) {
+  const maxBalls = f === 9 ? 3 : 2;
+  for (let b = 0; b < maxBalls; b++) {
+    const el = document.getElementById(`bb${f}${b}`);
+    if (!el) continue;
+    const v = ballStrs[b] || "";
+    el.textContent = v || "";
+    el.className = "ball-box" +
+      (v==="X"?" strike": v==="/"?" spare":"");
+  }
+  if (cumScore !== null && cumScore !== undefined) {
+    document.getElementById(`ms${f}`).textContent = cumScore;
+  }
+}
+
+// ── 更新 active 框線 ──
+function updateActiveFrame() {
+  for (let i = 0; i < 10; i++) {
+    const fc = document.getElementById(`fc${i}`);
+    fc.className = "frame-cell" +
+      (i < curFrame ? " done" : i === curFrame ? " active" : "");
+  }
+}
+
+// ── 建立目前局的球格 ──
+function renderCurrentBalls() {
+  const container = document.getElementById("currentBalls");
+  container.innerHTML = "";
+  const totalBalls = curFrame === 9 ? 3 : 2;
+
+  for (let b = 0; b < totalBalls; b++) {
+    const div = document.createElement("div");
+    const val = curBalls[b];
+
+    let cls = "cur-ball";
+    if (val === undefined) {
+      cls += " waiting";
+    } else if (val === "X") {
+      cls += " strike-box";
+    } else if (val === "/") {
+      cls += " spare-box";
+    } else {
+      cls += " filled";
+    }
+    div.className = cls;
+    div.textContent = val !== undefined ? val : "";
+
+    const label = document.createElement("span");
+    label.className = "ball-label";
+    label.textContent = `第${["一","二","三"][b]}球`;
+    div.appendChild(label);
+
+    container.appendChild(div);
+  }
+
+  container.classList.add("fade-up");
+  setTimeout(() => container.classList.remove("fade-up"), 400);
+}
+
+// ── 局別標題 ──
+function updateTitle() {
+  document.getElementById("frameTitle").textContent = FRAME_NAMES[curFrame];
+  const ballIdx = curBalls.length + 1;
+  const ballNames = ["一","二","三"];
+  document.getElementById("frameSubtitle").textContent = `第 ${ballNames[ballIdx-1] || "?"} 球`;
+}
+
+// ── 數字轉換 ──
+function rawToValue(raw, prevPins) {
+  if (raw === "X") return 10;
+  if (raw === "/") return 10 - prevPins;
+  if (raw === "-") return 0;
+  return parseInt(raw, 10) || 0;
+}
+
+// ── 重新計算累計分 ──
+function calcCumulative() {
+  // 把所有已完成的局 + 目前局目前球展平
+  const allFrames = [...frames, {
+    b1: curBalls[0], b2: curBalls[1], b3: curBalls[2]
+  }];
+
+  let flatRolls = [];
+  let flatRaws  = [];
+
+  for (let f = 0; f < allFrames.length; f++) {
+    const fr = allFrames[f];
+    if (fr.b1 === undefined) break;
+    const v1 = rawToValue(fr.b1, 0);
+    if (f < 9) {
+      flatRaws.push(fr.b1);
+      flatRolls.push(v1);
+      if (fr.b1 !== "X") {
+        if (fr.b2 === undefined) break;
+        const v2 = rawToValue(fr.b2, v1);
+        flatRaws.push(fr.b2);
+        flatRolls.push(v2);
+      }
+    } else {
+      // 第10局
+      const v1 = rawToValue(fr.b1, 0);
+      flatRaws.push(fr.b1); flatRolls.push(v1);
+      if (fr.b2 !== undefined) {
+        const v2 = fr.b1 === "X" ? rawToValue(fr.b2, 0) : rawToValue(fr.b2, v1);
+        flatRaws.push(fr.b2); flatRolls.push(v2);
+        if (fr.b3 !== undefined) {
+          let prevFor3 = 0;
+          if (fr.b1 === "X" && fr.b2 === "X") prevFor3 = 0;
+          else if (fr.b1 === "X") prevFor3 = v2;
+          else if (fr.b2 === "/") prevFor3 = 0;
+          const v3 = rawToValue(fr.b3, prevFor3);
+          flatRaws.push(fr.b3); flatRolls.push(v3);
+        }
+      }
+    }
+  }
+
+  // 計算累計
+  const cumulative = [];
+  let ri = 0;
+  for (let f = 0; f < 10 && ri < flatRolls.length; f++) {
+    if (f < 9) {
+      if (flatRaws[ri] === "X") {
+        if (ri + 2 >= flatRolls.length) { cumulative.push(null); ri++; break; }
+        const pts = 10 + flatRolls[ri+1] + flatRolls[ri+2];
+        cumulative.push((cumulative[f-1] || 0) + pts);
+        ri++;
+      } else if (flatRaws[ri+1] === "/") {
+        if (ri + 2 >= flatRolls.length) { cumulative.push(null); ri+=2; break; }
+        const pts = 10 + flatRolls[ri+2];
+        cumulative.push((cumulative[f-1] || 0) + pts);
+        ri += 2;
+      } else {
+        if (ri + 1 >= flatRolls.length) { cumulative.push(null); ri+=2; break; }
+        const pts = flatRolls[ri] + flatRolls[ri+1];
+        cumulative.push((cumulative[f-1] || 0) + pts);
+        ri += 2;
+      }
+    } else {
+      // 第10局
+      const available = flatRolls.length - ri;
+      const r10a = flatRaws[ri], r10b = flatRaws[ri+1], r10c = flatRaws[ri+2];
+      const v10a = flatRolls[ri], v10b = flatRolls[ri+1], v10c = flatRolls[ri+2];
+      const needs3 = r10a === "X" || r10b === "/";
+      if (available < 2) { cumulative.push(null); break; }
+      if (needs3 && available < 3) { cumulative.push(null); break; }
+      const pts = v10a + (v10b||0) + (needs3 ? (v10c||0) : 0);
+      cumulative.push((cumulative[f-1] || 0) + pts);
+    }
+  }
+
+  return cumulative;
+}
+
+// ── 更新分數顯示 ──
+function updateScoreDisplay() {
+  const cum = calcCumulative();
+  // 已完成的局更新 mini 卡
+  frames.forEach((fr, i) => {
+    const balls = [fr.b1, fr.b2, fr.b3].filter(v => v !== undefined);
+    updateMiniFrame(i, balls, cum[i] ?? "");
+  });
+  // 目前局的 mini 卡（只顯示球）
+  updateMiniFrame(curFrame, curBalls, null);
+
+  // 主分數
+  const lastValid = [...cum].reverse().find(v => v !== null);
+  const el = document.getElementById("scoreValue");
+  if (lastValid !== undefined) {
+    el.textContent = lastValid;
+    el.className = "value";
+  } else {
+    el.textContent = "—";
+    el.className = "value pending";
+  }
+}
+
+// ── 判斷目前局是否完成 ──
+function isFrameDone() {
+  if (curFrame < 9) {
+    if (curBalls[0] === "X") return true;      // strike
+    if (curBalls.length >= 2) return true;     // 2球
+  } else {
+    // 第10局
+    if (curBalls.length < 2) return false;
+    const b1 = curBalls[0], b2 = curBalls[1];
+    const needs3 = b1 === "X" || b2 === "/";
+    if (needs3) return curBalls.length >= 3;
+    return curBalls.length >= 2;
+  }
+  return false;
+}
+
+// ── 建立鍵盤 ──
+function buildKeypad() {
+  const pad = document.getElementById("keypad");
+  pad.innerHTML = "";
+
+  const ballIdx = curBalls.length;
+  const prev = ballIdx > 0 ? rawToValue(curBalls[ballIdx-1], 0) : 0;
+  const b1val = curBalls[0] !== undefined ? rawToValue(curBalls[0], 0) : null;
+
+  // 計算最大可輸入pin數
+  let maxPins = 10;
+  if (curFrame < 9) {
+    if (ballIdx === 1 && curBalls[0] !== "X") maxPins = 10 - rawToValue(curBalls[0], 0);
+  } else {
+    // 第10局
+    if (ballIdx === 1) {
+      if (curBalls[0] !== "X") maxPins = 10 - rawToValue(curBalls[0], 0);
+    } else if (ballIdx === 2) {
+      if (curBalls[1] === "/") maxPins = 10;
+      else if (curBalls[0] === "X") {
+        if (curBalls[1] === "X") maxPins = 10;
+        else maxPins = 10 - rawToValue(curBalls[1], 0);
+      } else maxPins = 10;
+    }
+  }
+
+  // 允許 Spare (/) 的條件
+  const canSpare = ballIdx === 1 && curBalls[0] !== "X" && curBalls[0] !== undefined;
+  // 第10局第3球若第2球是spare也可（already handled by /）
+  const canSpare10 = curFrame === 9 && ballIdx === 2 && curBalls[1] !== "X" && curBalls[1] !== "/" && curBalls[0] === "X";
+
+  // 鍵盤佈局：0~9、X（全倒）、/（補中）、-（溝球）、⌫
+  const keys = [
+    {label:"1", val:"1"}, {label:"2", val:"2"}, {label:"3", val:"3"}, {label:"X", val:"X", cls:"key-strike"},
+    {label:"4", val:"4"}, {label:"5", val:"5"}, {label:"6", val:"6"}, {label:"/", val:"/", cls:"key-spare"},
+    {label:"7", val:"7"}, {label:"8", val:"8"}, {label:"9", val:"9"}, {label:"0", val:"0"},
+    {label:"-", val:"-", cls:"key-gutter"},  {label:"", val:"", cls:"key-gutter", disabled:true},
+    {label:"", val:"", cls:"key-gutter", disabled:true}, {label:"⌫", val:"DEL", cls:"key-del"},
+  ];
+
+  keys.forEach(k => {
+    const btn = document.createElement("button");
+    btn.className = "key " + (k.cls || "key-num");
+    btn.textContent = k.label;
+
+    // 決定是否 disabled
+    let dis = k.disabled || false;
+    if (!dis && k.val !== "DEL" && k.val !== "") {
+      if (k.val === "X") {
+        // Strike 只在第1球、或第10局特定位置
+        const isFirst = ballIdx === 0;
+        const is10thBallOK = curFrame === 9 && (ballIdx === 0 || (ballIdx === 1 && curBalls[0] === "X") || (ballIdx === 2 && curBalls[1] === "X"));
+        dis = !(isFirst || (curFrame === 9 && is10thBallOK));
+        if (curFrame < 9 && ballIdx !== 0) dis = true;
+      } else if (k.val === "/") {
+        dis = !(canSpare || canSpare10);
+      } else if (k.val === "-") {
+        dis = false;
+      } else {
+        const num = parseInt(k.val, 10);
+        dis = num > maxPins;
+      }
+    }
+    if (dis) btn.disabled = true;
+
+    btn.addEventListener("click", () => handleInput(k.val));
+    pad.appendChild(btn);
+  });
+}
+
+// ── 處理輸入 ──
+function handleInput(val) {
+  if (val === "DEL") {
+    if (curBalls.length > 0) {
+      curBalls.pop();
+      renderCurrentBalls();
+      updateTitle();
+      updateMiniFrame(curFrame, curBalls, null);
+      buildKeypad();
+    }
+    return;
+  }
+  if (val === "") return;
+
+  curBalls.push(val);
+  renderCurrentBalls();
+  updateTitle();
+  updateScoreDisplay();
+  buildKeypad();
+
+  if (isFrameDone()) {
+    setTimeout(() => advanceFrame(), 420);
+  }
+}
+
+// ── 完成一局，推進到下一局 ──
+function advanceFrame() {
+  frames.push({ b1: curBalls[0], b2: curBalls[1], b3: curBalls[2] });
+  updateScoreDisplay(); // 確保 mini 卡有最終分
+
+  if (curFrame >= 9) {
+    showDone();
+    return;
+  }
+
+  curFrame++;
+  curBalls = [];
+  updateActiveFrame();
+  updateTitle();
+  renderCurrentBalls();
+  buildKeypad();
+
+  document.getElementById("frameTitle").classList.add("fade-up");
+  setTimeout(() => document.getElementById("frameTitle").classList.remove("fade-up"), 400);
+}
+
+// ── 顯示完成畫面 ──
+function showDone() {
+  const cum = calcCumulative();
+  const total = cum[9] ?? "？";
+  document.getElementById("finalScore").textContent = total;
+  document.getElementById("inputPanel").style.display = "none";
+  document.getElementById("donePanel").classList.add("show");
+}
+
+// ── 送出 ──
+document.getElementById("btnSubmit").addEventListener("click", async () => {
+  const msgEl = document.getElementById("msg");
+  msgEl.className = "";
+
+  if (APPS_SCRIPT_URL === "YOUR_APPS_SCRIPT_URL_HERE") {
+    msgEl.textContent = "⚠️ 請先填入 Apps Script URL";
+    msgEl.className = "error";
+    return;
+  }
+
+  const today = new Date();
+  const date = `${today.getFullYear()}-${String(today.getMonth()+1).padStart(2,"0")}-${String(today.getDate()).padStart(2,"0")}`;
+  const cum = calcCumulative();
+
+  const payload = {
+    date,
+    frames: frames.map((fr, i) => ({
+      b1: fr.b1 || "",
+      b2: fr.b2 || "",
+      b3: fr.b3 || "",
+      score: cum[i] != null ? String(cum[i]) : ""
+    }))
+  };
+
+  msgEl.textContent = "傳送中…";
+  try {
+    await fetch(APPS_SCRIPT_URL, {
+      method: "POST",
+      mode: "no-cors",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload)
+    });
+    msgEl.textContent = "✅ 已上傳！";
+    msgEl.className = "";
+  } catch (e) {
+    msgEl.textContent = "❌ 上傳失敗：" + e.message;
+    msgEl.className = "error";
+  }
+});
+
+// ── 重新開始 ──
+document.getElementById("btnRestart").addEventListener("click", () => {
+  frames = []; curBalls = []; curFrame = 0; rolls = [];
+  document.getElementById("inputPanel").style.display = "";
+  document.getElementById("donePanel").classList.remove("show");
+  document.getElementById("msg").textContent = "";
+  buildMiniTable();
+  updateActiveFrame();
+  updateTitle();
+  renderCurrentBalls();
+  buildKeypad();
+});
+
+// ── 啟動 ──
+buildMiniTable();
+updateActiveFrame();
+updateTitle();
+renderCurrentBalls();
+buildKeypad();
+</script>
+</body>
+</html>
