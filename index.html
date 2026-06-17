@@ -898,14 +898,18 @@ document.getElementById("btnLoadHistory").addEventListener("click", async () => 
     if (!data.records || data.records.length === 0) {
       list.innerHTML = `<div class="empty-hint">尚無紀錄</div>`; return;
     }
-    list.innerHTML = data.records.slice().reverse().map(r => `
+    list.innerHTML = data.records.slice().reverse().map(r => {
+      // 只取 yyyy-mm-dd 數字部分
+      const d = String(r.date).replace(/T.*/, "").replace(/-/g, "/");
+      return `
       <div class="history-item">
         <div>
-          <div class="history-date">${r.date}</div>
+          <div class="history-date">${d}</div>
           <div class="history-frames">${r.balls}</div>
         </div>
         <div class="history-score">${r.total}</div>
-      </div>`).join("");
+      </div>`;
+    }).join("");
   } catch(e) {
     list.innerHTML = `<div class="empty-hint">載入失敗，請確認網路或 Apps Script URL</div>`;
   }
@@ -924,10 +928,30 @@ document.getElementById("btnLoadStats").addEventListener("click", async () => {
       sl.innerHTML = `<div class="empty-hint">尚無紀錄</div>`; return;
     }
     const totals = data.records.map(r => parseInt(r.total, 10)).filter(n => !isNaN(n));
-    const avg  = Math.round(totals.reduce((a,b) => a+b, 0) / totals.length);
-    const best = Math.max(...totals);
+    const avg   = Math.round(totals.reduce((a,b) => a+b, 0) / totals.length);
+    const best  = Math.max(...totals);
     const worst = Math.min(...totals);
     const games = totals.length;
+
+    // 計算全倒率、補中率
+    let strikeFrames = 0, spareFrames = 0, totalFrames = 0, openFrames = 0;
+    data.records.forEach(r => {
+      if (!r.frames) return;
+      r.frames.forEach((fr, fi) => {
+        if (!fr.b1) return;
+        totalFrames++;
+        if (fr.b1 === "X") {
+          strikeFrames++;
+        } else if (fr.b2 === "/") {
+          spareFrames++;
+        } else {
+          openFrames++;
+        }
+      });
+    });
+    const strikeRate = totalFrames ? Math.round(strikeFrames / totalFrames * 100) : 0;
+    const spareRate  = totalFrames ? Math.round(spareFrames / (totalFrames - strikeFrames || 1) * 100) : 0;
+
     const recent5 = totals.slice(-5);
     const maxT = Math.max(...recent5, 1);
     const bars = recent5.map((v, i) =>
@@ -948,6 +972,18 @@ document.getElementById("btnLoadStats").addEventListener("click", async () => {
         <div class="stat-card">
           <div class="stat-card-title">最低分</div>
           <div class="stat-card-value">${worst}</div>
+        </div>
+      </div>
+      <div class="stat-grid">
+        <div class="stat-card">
+          <div class="stat-card-title">全倒率</div>
+          <div class="stat-card-value" style="color:var(--strike)">${strikeRate}%</div>
+          <div class="stat-card-sub">${strikeFrames} / ${totalFrames} 局</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-card-title">補中率</div>
+          <div class="stat-card-value" style="color:var(--spare)">${spareRate}%</div>
+          <div class="stat-card-sub">${spareFrames} / ${totalFrames - strikeFrames} 局</div>
         </div>
       </div>
       <div class="stat-card">
