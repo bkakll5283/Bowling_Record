@@ -289,14 +289,22 @@
 
 <!-- 頂部迷你計分卡 -->
 <div class="mini-card">
-  <table id="miniTable">
-    <thead>
-      <tr id="miniHeaders"></tr>
-    </thead>
+  <!-- 第1~5局 -->
+  <table id="miniTable1" style="width:100%;border-collapse:collapse;margin-bottom:4px">
+    <thead><tr id="miniHeaders1"></tr></thead>
     <tbody>
-      <tr id="miniBalls"></tr>
-      <tr><td colspan="11" style="padding:0"><div class="divider"></div></td></tr>
-      <tr id="miniScores"></tr>
+      <tr id="miniBalls1"></tr>
+      <tr><td colspan="6" style="padding:0"><div class="divider"></div></td></tr>
+      <tr id="miniScores1"></tr>
+    </tbody>
+  </table>
+  <!-- 第6~10局 -->
+  <table id="miniTable2" style="width:100%;border-collapse:collapse;margin-top:2px">
+    <thead><tr id="miniHeaders2"></tr></thead>
+    <tbody>
+      <tr id="miniBalls2"></tr>
+      <tr><td colspan="6" style="padding:0"><div class="divider"></div></td></tr>
+      <tr id="miniScores2"></tr>
     </tbody>
   </table>
 </div>
@@ -324,7 +332,7 @@
   <div class="done-label">最終得分</div>
   <div class="done-score" id="finalScore">—</div>
   <div id="msg"></div>
-  <button class="btn btn-primary" id="btnSubmit">📤 上傳到試算表</button>
+  <button class="btn btn-primary" id="btnSubmit">📤 上傳得分紀錄</button>
   <button class="btn btn-secondary" id="btnRestart">重新開始</button>
 </div>
 
@@ -340,33 +348,48 @@ let curBalls = [];    // 目前局輸入中的球 (字串陣列)
 let curFrame = 0;     // 0–9
 let rolls = [];       // 展平的數值陣列（用來算累計分）
 
-// ── 初始化迷你計分卡 ──
+// ── 初始化迷你計分卡（兩列：1-5局、6-10局）──
 function buildMiniTable() {
-  const headers = document.getElementById("miniHeaders");
-  const ballsRow = document.getElementById("miniBalls");
-  const scoresRow = document.getElementById("miniScores");
+  function buildHalf(headerEl, ballsEl, scoresEl, startIdx, endIdx) {
+    headerEl.innerHTML = `<th style="width:22px;color:var(--muted);font-size:.6rem"></th>` +
+      FRAME_NAMES.slice(startIdx, endIdx).map((n, ii) => {
+        const i = startIdx + ii;
+        return `<th id="mh${i}" style="font-size:.6rem;padding:2px 1px">${n.slice(1)}</th>`;
+      }).join("");
 
-  headers.innerHTML = `<th style="width:28px;color:var(--muted);font-size:.6rem"></th>` +
-    FRAME_NAMES.map((n,i) =>
-      `<th id="mh${i}" style="font-size:.6rem;padding:2px 1px">${n.slice(1)}</th>`
-    ).join("");
-
-  ballsRow.innerHTML = `<td style="font-size:.6rem;color:var(--muted);padding:2px 1px">球</td>` +
-    Array.from({length:10}, (_,i) => `
-      <td>
-        <div class="frame-cell${i===0?' active':''}" id="fc${i}">
-          <div class="balls-row" id="fb${i}">
-            <div class="ball-box" id="bb${i}0">-</div>
-            <div class="ball-box" id="bb${i}1">-</div>
-            ${i===9?`<div class="ball-box" id="bb${i}2">-</div>`:""}
+    ballsEl.innerHTML = `<td style="font-size:.6rem;color:var(--muted);padding:2px 1px">球</td>` +
+      Array.from({length: endIdx - startIdx}, (_, ii) => {
+        const i = startIdx + ii;
+        return `<td>
+          <div class="frame-cell${i===0?' active':''}" id="fc${i}">
+            <div class="balls-row" id="fb${i}">
+              <div class="ball-box" id="bb${i}0">-</div>
+              <div class="ball-box" id="bb${i}1">-</div>
+              ${i===9?`<div class="ball-box" id="bb${i}2">-</div>`:""}
+            </div>
           </div>
-        </div>
-      </td>`).join("");
+        </td>`;
+      }).join("");
 
-  scoresRow.innerHTML = `<td style="font-size:.6rem;color:var(--muted);padding:2px 1px">分</td>` +
-    Array.from({length:10}, (_,i) =>
-      `<td><div class="score-row" id="ms${i}"></div></td>`
-    ).join("");
+    scoresEl.innerHTML = `<td style="font-size:.6rem;color:var(--muted);padding:2px 1px">分</td>` +
+      Array.from({length: endIdx - startIdx}, (_, ii) => {
+        const i = startIdx + ii;
+        return `<td><div class="score-row" id="ms${i}"></div></td>`;
+      }).join("");
+  }
+
+  buildHalf(
+    document.getElementById("miniHeaders1"),
+    document.getElementById("miniBalls1"),
+    document.getElementById("miniScores1"),
+    0, 5
+  );
+  buildHalf(
+    document.getElementById("miniHeaders2"),
+    document.getElementById("miniBalls2"),
+    document.getElementById("miniScores2"),
+    5, 10
+  );
 }
 
 // ── 更新迷你計分卡某一局 ──
