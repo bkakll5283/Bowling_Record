@@ -110,6 +110,44 @@
       min-height: 20px;
     }
 
+    /* ── 球員選擇 ── */
+    .player-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 10px 14px;
+    }
+
+    .player-label {
+      font-size: .85rem;
+      color: var(--muted);
+      white-space: nowrap;
+      font-weight: 600;
+    }
+
+    #playerSelect {
+      flex: 1;
+      background: var(--bg);
+      color: var(--text);
+      border: 1px solid var(--border);
+      border-radius: 7px;
+      padding: 8px 10px;
+      font-size: 1rem;
+      font-family: inherit;
+      outline: none;
+      appearance: none;
+      -webkit-appearance: none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath fill='%237f8c9a' d='M6 8L0 0h12z'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 12px center;
+      padding-right: 32px;
+    }
+
+    #playerSelect:focus { border-color: var(--accent); }
+
     /* ── 主輸入區 ── */
     .main-panel {
       width: 100%;
@@ -311,6 +349,25 @@
 
 <!-- 主輸入區 -->
 <div class="main-panel" id="inputPanel">
+  <!-- 姓名選擇 -->
+  <div class="player-row">
+    <label class="player-label" for="playerSelect">球員</label>
+    <select id="playerSelect">
+      <option value="">── 請選擇球員 ──</option>
+      <option>李岱柏</option>
+      <option>李咨亨</option>
+      <option>孫世展</option>
+      <option>邱晉倫</option>
+      <option>吳媮珊</option>
+      <option>劉伯鴻</option>
+      <option>孫世益</option>
+      <option>張雅雰</option>
+      <option>莊哲嘉</option>
+      <option>邱朝昱</option>
+      <option>陳騰九</option>
+    </select>
+  </div>
+
   <div class="frame-title" id="frameTitle">第一局</div>
   <div class="frame-subtitle" id="frameSubtitle">第 1 球</div>
 
@@ -716,6 +773,13 @@ document.getElementById("btnSubmit").addEventListener("click", async () => {
   const msgEl = document.getElementById("msg");
   msgEl.className = "";
 
+  const player = document.getElementById("playerSelect").value;
+  if (!player) {
+    msgEl.textContent = "⚠️ 請先選擇球員姓名";
+    msgEl.className = "error";
+    return;
+  }
+
   if (APPS_SCRIPT_URL === "YOUR_APPS_SCRIPT_URL_HERE") {
     msgEl.textContent = "⚠️ 請先填入 Apps Script URL";
     msgEl.className = "error";
@@ -728,6 +792,7 @@ document.getElementById("btnSubmit").addEventListener("click", async () => {
 
   const payload = {
     date,
+    player,
     frames: frames.map((fr, i) => ({
       b1: fr.b1 || "",
       b2: fr.b2 || "",
