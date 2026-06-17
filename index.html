@@ -16,13 +16,10 @@
       --text: #ecf0f1;
       --muted: #7f8c9a;
       --border: #2e4055;
+      --nav-h: 54px;
     }
 
-    html, body {
-      height: 100%;
-      height: 100dvh;
-      overflow: hidden;
-    }
+    html, body { height: 100%; height: 100dvh; overflow: hidden; }
 
     body {
       background: var(--bg);
@@ -30,14 +27,50 @@
       font-family: "Microsoft JhengHei", Arial, sans-serif;
       display: flex;
       flex-direction: column;
-      align-items: center;
-      padding: 8px 10px;
       max-width: 480px;
       margin: 0 auto;
-      gap: 6px;
     }
 
-    /* ── 頂部計分卡 ── */
+    /* ══ 底部導航 ══ */
+    .nav-bar {
+      display: flex;
+      height: var(--nav-h);
+      background: var(--card);
+      border-top: 1px solid var(--border);
+      flex-shrink: 0;
+    }
+
+    .nav-btn {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 2px;
+      font-size: .62rem;
+      color: var(--muted);
+      border: none;
+      background: none;
+      cursor: pointer;
+      transition: color .15s;
+    }
+
+    .nav-btn.active { color: var(--accent); }
+    .nav-btn svg { width: 20px; height: 20px; fill: currentColor; }
+
+    /* ══ 頁面容器 ══ */
+    .page {
+      display: none;
+      flex-direction: column;
+      flex: 1;
+      min-height: 0;
+      padding: 8px 10px;
+      gap: 6px;
+      overflow: hidden;
+    }
+    .page.active { display: flex; }
+
+    /* ══ 計分卡 ══ */
     .mini-card {
       width: 100%;
       background: var(--card);
@@ -47,7 +80,6 @@
       flex-shrink: 0;
     }
 
-    /* 每列用 Grid，5 格等寬 */
     .mini-row {
       display: grid;
       grid-template-columns: repeat(5, 1fr);
@@ -69,21 +101,14 @@
       overflow: hidden;
     }
 
-    .frame-cell.active {
-      border-color: var(--accent);
-      box-shadow: 0 0 6px rgba(59,158,222,.5);
-    }
-
-    .frame-cell.done {
-      border-color: var(--border);
-    }
+    .frame-cell.active { border-color: var(--accent); box-shadow: 0 0 6px rgba(59,158,222,.5); }
+    .frame-cell.done   { border-color: var(--border); }
 
     .balls-row {
       display: flex;
-      justify-content: flex-end;
       gap: 1px;
       background: #0f1923;
-      padding: 1px 2px 1px;
+      padding: 1px 2px;
       min-height: 18px;
     }
 
@@ -102,7 +127,7 @@
     }
 
     .ball-box.strike { color: var(--strike); }
-    .ball-box.spare  { color: var(--spare);  }
+    .ball-box.spare  { color: var(--spare); }
 
     .score-row {
       background: var(--card);
@@ -114,7 +139,7 @@
       min-height: 18px;
     }
 
-    /* ── 球員選擇 ── */
+    /* ══ 球員選擇 ══ */
     .player-row {
       display: flex;
       align-items: center;
@@ -127,12 +152,7 @@
       flex-shrink: 0;
     }
 
-    .player-label {
-      font-size: .8rem;
-      color: var(--muted);
-      white-space: nowrap;
-      font-weight: 600;
-    }
+    .player-label { font-size: .8rem; color: var(--muted); white-space: nowrap; font-weight: 600; }
 
     #playerSelect {
       flex: 1;
@@ -153,7 +173,7 @@
 
     #playerSelect:focus { border-color: var(--accent); }
 
-    /* ── 主輸入區 ── */
+    /* ══ 主輸入區 ══ */
     .main-panel {
       width: 100%;
       flex: 1;
@@ -163,7 +183,6 @@
       min-height: 0;
     }
 
-    /* 局別標題 */
     .frame-title {
       text-align: center;
       font-size: 1.3rem;
@@ -174,7 +193,6 @@
       flex-shrink: 0;
     }
 
-    /* 目前局的球道顯示 */
     .current-balls {
       display: flex;
       justify-content: center;
@@ -184,8 +202,7 @@
     }
 
     .cur-ball {
-      width: 46px;
-      height: 46px;
+      width: 46px; height: 46px;
       border: 2px solid var(--border);
       border-radius: 8px;
       display: flex;
@@ -199,7 +216,7 @@
       transition: border-color .2s, background .2s;
     }
 
-    .cur-ball.filled { border-color: var(--accent); background: #1f3548; }
+    .cur-ball.filled     { border-color: var(--accent); background: #1f3548; }
     .cur-ball.strike-box { border-color: var(--strike); color: var(--strike); background: #2a1f0a; }
     .cur-ball.spare-box  { border-color: var(--spare);  color: var(--spare);  background: #0a2018; }
     .cur-ball.waiting    { border-style: dashed; opacity: .4; }
@@ -212,23 +229,11 @@
       white-space: nowrap;
     }
 
-    /* 累計分顯示 */
-    .score-display {
-      text-align: center;
-      flex-shrink: 0;
-    }
-
+    .score-display { text-align: center; flex-shrink: 0; }
     .score-display .label { font-size: .75rem; color: var(--muted); }
-    .score-display .value {
-      font-size: 2rem;
-      font-weight: bold;
-      color: var(--text);
-      line-height: 1.1;
-    }
+    .score-display .value { font-size: 2rem; font-weight: bold; color: var(--text); line-height: 1.1; }
 
-    .score-display .pending { color: var(--muted); font-size: 1rem; }
-
-    /* ── 數字鍵盤 ── */
+    /* ══ 鍵盤 ══ */
     .keypad {
       display: grid;
       grid-template-columns: repeat(4, 1fr);
@@ -252,17 +257,15 @@
     }
 
     .key:active { transform: scale(.92); }
-
     .key-num    { background: var(--card); color: var(--text); border: 1px solid var(--border); }
     .key-num:hover { background: #253a4e; }
     .key-strike { background: #7a4e10; color: var(--strike); font-size: 1.5rem; }
     .key-spare  { background: #0d4228; color: var(--spare);  font-size: 1.5rem; }
     .key-del    { background: #2e1a1a; color: #e74c3c; font-size: 1.1rem; }
     .key-gutter { background: var(--card); color: var(--muted); border: 1px solid var(--border); }
-
     .key:disabled { opacity: .25; cursor: default; }
 
-    /* ── 完成畫面 ── */
+    /* ══ 完成畫面 ══ */
     .done-panel {
       display: none;
       flex-direction: column;
@@ -274,16 +277,9 @@
       min-height: 0;
       text-align: center;
     }
-
     .done-panel.show { display: flex; }
 
-    .done-score {
-      font-size: 3rem;
-      font-weight: bold;
-      color: var(--accent);
-      line-height: 1;
-    }
-
+    .done-score { font-size: 3rem; font-weight: bold; color: var(--accent); line-height: 1; }
     .done-label { font-size: .9rem; color: var(--muted); }
 
     .btn {
@@ -301,216 +297,398 @@
     .btn-primary:hover { background: #2a87c8; }
     .btn-secondary { background: var(--card); color: var(--muted); border: 1px solid var(--border); }
 
-    /* 狀態訊息 */
     #msg {
       text-align: center;
       font-size: .9rem;
       font-weight: bold;
       min-height: 20px;
       color: var(--spare);
-      padding: 4px 0 8px;
+      padding: 2px 0;
     }
     #msg.error { color: #e74c3c; }
 
-    /* ── 過場動畫 ── */
+    /* ══ 過場動畫 ══ */
     @keyframes fadeUp {
       from { opacity: 0; transform: translateY(20px); }
       to   { opacity: 1; transform: translateY(0); }
     }
     .fade-up { animation: fadeUp .35s ease both; }
 
-    .divider {
-      width: 100%;
-      height: 1px;
-      background: var(--border);
-      margin: 1px 0;
+    .divider { width: 100%; height: 1px; background: var(--border); margin: 1px 0; flex-shrink: 0; }
+
+    /* ══ 歷史頁 ══ */
+    .history-page {
+      overflow-y: auto;
+    }
+
+    .page-title {
+      font-size: 1rem;
+      font-weight: bold;
+      color: var(--accent);
+      text-align: center;
       flex-shrink: 0;
     }
+
+    .history-player-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-shrink: 0;
+    }
+
+    .history-player-row label { font-size: .8rem; color: var(--muted); white-space: nowrap; }
+
+    .select-sm {
+      flex: 1;
+      background: var(--bg);
+      color: var(--text);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 5px 8px;
+      font-size: .9rem;
+      font-family: inherit;
+      outline: none;
+      appearance: none;
+      -webkit-appearance: none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath fill='%237f8c9a' d='M6 8L0 0h12z'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 8px center;
+      padding-right: 26px;
+    }
+
+    .btn-sm {
+      padding: 6px 14px;
+      border: none;
+      border-radius: 7px;
+      font-size: .85rem;
+      font-weight: bold;
+      background: var(--accent);
+      color: #fff;
+      cursor: pointer;
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+
+    .history-list {
+      flex: 1;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .history-item {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 8px 12px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .history-date { font-size: .8rem; color: var(--muted); }
+    .history-score { font-size: 1.4rem; font-weight: bold; color: var(--accent); }
+    .history-frames { font-size: .7rem; color: var(--muted); margin-top: 2px; }
+
+    .empty-hint {
+      text-align: center;
+      color: var(--muted);
+      font-size: .9rem;
+      padding: 30px 0;
+    }
+
+    .loading-hint {
+      text-align: center;
+      color: var(--muted);
+      font-size: .85rem;
+      padding: 20px 0;
+    }
+
+    /* ══ 統計頁 ══ */
+    .stats-list {
+      flex: 1;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .stat-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 12px 14px;
+    }
+
+    .stat-card-title {
+      font-size: .75rem;
+      color: var(--muted);
+      margin-bottom: 4px;
+    }
+
+    .stat-card-value {
+      font-size: 1.8rem;
+      font-weight: bold;
+      color: var(--accent);
+      line-height: 1;
+    }
+
+    .stat-card-sub {
+      font-size: .72rem;
+      color: var(--muted);
+      margin-top: 3px;
+    }
+
+    .stat-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
+
+    .stat-grid .stat-card-value { font-size: 1.4rem; }
+
+    /* 迷你趨勢圖 */
+    .trend-bars {
+      display: flex;
+      align-items: flex-end;
+      gap: 3px;
+      height: 40px;
+      margin-top: 6px;
+    }
+
+    .trend-bar {
+      flex: 1;
+      background: var(--accent);
+      border-radius: 2px 2px 0 0;
+      opacity: .7;
+      min-height: 2px;
+      transition: height .3s;
+    }
+
+    .trend-bar.latest { opacity: 1; background: var(--strike); }
   </style>
 </head>
 <body>
 
-<!-- 頂部迷你計分卡 -->
-<div class="mini-card">
-  <!-- 第1~5局 -->
-  <div id="miniHeaders1" class="mini-row"></div>
-  <div id="miniBalls1"   class="mini-row"></div>
-  <div class="divider" style="margin:2px 0"></div>
-  <div id="miniScores1"  class="mini-row"></div>
-  <!-- 間隔 -->
-  <div style="height:6px"></div>
-  <!-- 第6~10局 -->
-  <div id="miniHeaders2" class="mini-row"></div>
-  <div id="miniBalls2"   class="mini-row"></div>
-  <div class="divider" style="margin:2px 0"></div>
-  <div id="miniScores2"  class="mini-row"></div>
-</div>
-
-<!-- 球員選擇（全局可見）-->
-<div class="player-row">
-  <label class="player-label" for="playerSelect">球員</label>
-  <select id="playerSelect">
-    <option value="">── 請選擇球員 ──</option>
-    <option>李岱柏</option>
-    <option>李咨亨</option>
-    <option>孫世展</option>
-    <option>邱晉倫</option>
-    <option>吳媮珊</option>
-    <option>劉伯鴻</option>
-    <option>孫世益</option>
-    <option>張雅雰</option>
-    <option>莊哲嘉</option>
-    <option>邱朝昱</option>
-    <option>陳騰九</option>
-  </select>
-</div>
-
-<!-- 主輸入區 -->
-<div class="main-panel" id="inputPanel">
-  <div class="frame-title" id="frameTitle">第一局</div>
-
-  <div class="current-balls" id="currentBalls"></div>
-
-  <div class="score-display">
-    <div class="label">目前總分</div>
-    <div id="scoreValue" class="value">—</div>
+<!-- ══ 記錄頁 ══ -->
+<div class="page active" id="pageRecord">
+  <!-- 頂部計分卡 -->
+  <div class="mini-card">
+    <div id="miniHeaders1" class="mini-row"></div>
+    <div id="miniBalls1"   class="mini-row"></div>
+    <div class="divider" style="margin:2px 0"></div>
+    <div id="miniScores1"  class="mini-row"></div>
+    <div style="height:5px"></div>
+    <div id="miniHeaders2" class="mini-row"></div>
+    <div id="miniBalls2"   class="mini-row"></div>
+    <div class="divider" style="margin:2px 0"></div>
+    <div id="miniScores2"  class="mini-row"></div>
   </div>
 
-  <div class="divider"></div>
+  <!-- 球員選擇 -->
+  <div class="player-row">
+    <label class="player-label" for="playerSelect">球員</label>
+    <select id="playerSelect">
+      <option value="">── 請選擇球員 ──</option>
+      <option>李岱柏</option>
+      <option>李咨亨</option>
+      <option>孫世展</option>
+      <option>邱晉倫</option>
+      <option>吳媮珊</option>
+      <option>劉伯鴻</option>
+      <option>孫世益</option>
+      <option>張雅雰</option>
+      <option>莊哲嘉</option>
+      <option>邱朝昱</option>
+      <option>陳騰九</option>
+    </select>
+  </div>
 
-  <!-- 數字鍵盤 -->
-  <div class="keypad" id="keypad"></div>
+  <!-- 輸入區 -->
+  <div class="main-panel" id="inputPanel">
+    <div class="frame-title" id="frameTitle">第一局</div>
+    <div class="current-balls" id="currentBalls"></div>
+    <div class="score-display">
+      <div class="label">目前總分</div>
+      <div id="scoreValue" class="value">—</div>
+    </div>
+    <div class="divider"></div>
+    <div class="keypad" id="keypad"></div>
+  </div>
+
+  <!-- 完成畫面 -->
+  <div class="done-panel" id="donePanel">
+    <div class="done-label">最終得分</div>
+    <div class="done-score" id="finalScore">—</div>
+    <div id="msg"></div>
+    <button class="btn btn-primary" id="btnSubmit">📤 上傳得分紀錄</button>
+    <button class="btn btn-secondary" id="btnRestart">重新開始</button>
+  </div>
 </div>
 
-<!-- 完成後畫面 -->
-<div class="done-panel" id="donePanel">
-  <div class="done-label">最終得分</div>
-  <div class="done-score" id="finalScore">—</div>
-  <div id="msg"></div>
-  <button class="btn btn-primary" id="btnSubmit">📤 上傳得分紀錄</button>
-  <button class="btn btn-secondary" id="btnRestart">重新開始</button>
+<!-- ══ 歷史頁 ══ -->
+<div class="page history-page" id="pageHistory">
+  <div class="page-title">歷史紀錄</div>
+  <div class="history-player-row">
+    <label>球員</label>
+    <select class="select-sm" id="historySelect">
+      <option value="">── 請選擇 ──</option>
+      <option>李岱柏</option>
+      <option>李咨亨</option>
+      <option>孫世展</option>
+      <option>邱晉倫</option>
+      <option>吳媮珊</option>
+      <option>劉伯鴻</option>
+      <option>孫世益</option>
+      <option>張雅雰</option>
+      <option>莊哲嘉</option>
+      <option>邱朝昱</option>
+      <option>陳騰九</option>
+    </select>
+    <button class="btn-sm" id="btnLoadHistory">查詢</button>
+  </div>
+  <div class="history-list" id="historyList">
+    <div class="empty-hint">請選擇球員後按查詢</div>
+  </div>
 </div>
+
+<!-- ══ 統計頁 ══ -->
+<div class="page" id="pageStats">
+  <div class="page-title">個人統計</div>
+  <div class="history-player-row">
+    <label>球員</label>
+    <select class="select-sm" id="statsSelect">
+      <option value="">── 請選擇 ──</option>
+      <option>李岱柏</option>
+      <option>李咨亨</option>
+      <option>孫世展</option>
+      <option>邱晉倫</option>
+      <option>吳媮珊</option>
+      <option>劉伯鴻</option>
+      <option>孫世益</option>
+      <option>張雅雰</option>
+      <option>莊哲嘉</option>
+      <option>邱朝昱</option>
+      <option>陳騰九</option>
+    </select>
+    <button class="btn-sm" id="btnLoadStats">查詢</button>
+  </div>
+  <div class="stats-list" id="statsList">
+    <div class="empty-hint">請選擇球員後按查詢</div>
+  </div>
+</div>
+
+<!-- ══ 底部導航 ══ -->
+<nav class="nav-bar">
+  <button class="nav-btn active" data-page="pageRecord">
+    <svg viewBox="0 0 24 24"><path d="M19 3H5a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2V5a2 2 0 00-2-2zm-7 14l-5-5 1.41-1.41L12 14.17l7.59-7.59L21 8l-9 9z"/></svg>
+    記錄
+  </button>
+  <button class="nav-btn" data-page="pageHistory">
+    <svg viewBox="0 0 24 24"><path d="M13 3a9 9 0 00-9 9H1l3.89 3.89.07.14L9 12H6a7 7 0 117 7c-1.93 0-3.68-.79-4.94-2.06L6.64 18.36A9 9 0 1013 3zm-1 5v5l4.28 2.54.72-1.21-3.5-2.08V8H12z"/></svg>
+    歷史
+  </button>
+  <button class="nav-btn" data-page="pageStats">
+    <svg viewBox="0 0 24 24"><path d="M19 3H5a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2V5a2 2 0 00-2-2zm-7 11H7v-2h5v2zm3-4H7V8h8v2z"/></svg>
+    統計
+  </button>
+</nav>
 
 <script>
-// ── 設定 ──
 const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzLp481U1ynLSJ0f8SZxygvrTPOy50yckjsQMuwgils4zSGay86ApVljwzifnHFb2U5Aw/exec";
-const FRAME_NAMES = ["第一局","第二局","第三局","第四局","第五局",
-                     "第六局","第七局","第八局","第九局","第十局"];
+const FRAME_NAMES = ["第一局","第二局","第三局","第四局","第五局","第六局","第七局","第八局","第九局","第十局"];
 
-// ── 狀態 ──
-let frames = [];      // [{b1:"X",b2:"",b3:""}, ...]  已完成的局
-let curBalls = [];    // 目前局輸入中的球 (字串陣列)
-let curFrame = 0;     // 0–9
-let rolls = [];       // 展平的數值陣列（用來算累計分）
+let frames = [], curBalls = [], curFrame = 0, rolls = [];
 
-// ── 初始化迷你計分卡（兩列：1-5局、6-10局）──
+// ── 姓名保留 ──
+const savedPlayer = localStorage.getItem("bowlingPlayer") || "";
+document.getElementById("playerSelect").value = savedPlayer;
+document.getElementById("playerSelect").addEventListener("change", e => {
+  localStorage.setItem("bowlingPlayer", e.target.value);
+});
+
+// ── 底部導航 ──
+document.querySelectorAll(".nav-btn").forEach(btn => {
+  btn.addEventListener("click", () => {
+    document.querySelectorAll(".nav-btn").forEach(b => b.classList.remove("active"));
+    document.querySelectorAll(".page").forEach(p => p.classList.remove("active"));
+    btn.classList.add("active");
+    document.getElementById(btn.dataset.page).classList.add("active");
+  });
+});
+
+// ══ 計分卡 ══
 function buildMiniTable() {
-  function buildHalf(headerEl, ballsEl, scoresEl, startIdx, endIdx) {
-    headerEl.innerHTML =
-      FRAME_NAMES.slice(startIdx, endIdx).map((n, ii) => {
-        const i = startIdx + ii;
-        return `<div id="mh${i}" class="mini-header-cell">${n.slice(1)}</div>`;
-      }).join("");
-
-    ballsEl.innerHTML =
-      Array.from({length: endIdx - startIdx}, (_, ii) => {
-        const i = startIdx + ii;
-        return `<div class="frame-cell${i===0?' active':''}" id="fc${i}">
-          <div class="balls-row" id="fb${i}">
-            <div class="ball-box" id="bb${i}0"></div>
-            <div class="ball-box" id="bb${i}1"></div>
-            ${i===9?`<div class="ball-box" id="bb${i}2"></div>`:""}
-          </div>
-        </div>`;
-      }).join("");
-
-    scoresEl.innerHTML =
-      Array.from({length: endIdx - startIdx}, (_, ii) => {
-        const i = startIdx + ii;
-        return `<div class="score-row" id="ms${i}"></div>`;
-      }).join("");
+  function buildHalf(h1, b1, s1, start, end) {
+    h1.innerHTML = FRAME_NAMES.slice(start, end).map((n, ii) =>
+      `<div id="mh${start+ii}" class="mini-header-cell">${n.slice(1)}</div>`).join("");
+    b1.innerHTML = Array.from({length: end-start}, (_, ii) => {
+      const i = start+ii;
+      return `<div class="frame-cell${i===0?' active':''}" id="fc${i}">
+        <div class="balls-row" id="fb${i}">
+          <div class="ball-box" id="bb${i}0"></div>
+          <div class="ball-box" id="bb${i}1"></div>
+          ${i===9?`<div class="ball-box" id="bb${i}2"></div>`:""}
+        </div></div>`;
+    }).join("");
+    s1.innerHTML = Array.from({length: end-start}, (_, ii) =>
+      `<div class="score-row" id="ms${start+ii}"></div>`).join("");
   }
-
   buildHalf(
-    document.getElementById("miniHeaders1"),
-    document.getElementById("miniBalls1"),
-    document.getElementById("miniScores1"),
-    0, 5
+    document.getElementById("miniHeaders1"), document.getElementById("miniBalls1"), document.getElementById("miniScores1"), 0, 5
   );
   buildHalf(
-    document.getElementById("miniHeaders2"),
-    document.getElementById("miniBalls2"),
-    document.getElementById("miniScores2"),
-    5, 10
+    document.getElementById("miniHeaders2"), document.getElementById("miniBalls2"), document.getElementById("miniScores2"), 5, 10
   );
 }
 
-// ── 更新迷你計分卡某一局 ──
 function updateMiniFrame(f, ballStrs, cumScore) {
   const maxBalls = f === 9 ? 3 : 2;
   for (let b = 0; b < maxBalls; b++) {
     const el = document.getElementById(`bb${f}${b}`);
     if (!el) continue;
     const v = ballStrs[b] || "";
-    el.textContent = v || "";
-    el.className = "ball-box" +
-      (v==="X"?" strike": v==="/"?" spare":"");
+    el.textContent = v;
+    el.className = "ball-box" + (v==="X"?" strike": v==="/"?" spare":"");
   }
-  if (cumScore !== null && cumScore !== undefined) {
+  if (cumScore !== null && cumScore !== undefined)
     document.getElementById(`ms${f}`).textContent = cumScore;
-  }
 }
 
-// ── 更新 active 框線 ──
 function updateActiveFrame() {
   for (let i = 0; i < 10; i++) {
     const fc = document.getElementById(`fc${i}`);
-    fc.className = "frame-cell" +
-      (i < curFrame ? " done" : i === curFrame ? " active" : "");
+    if (fc) fc.className = "frame-cell" + (i < curFrame ? " done" : i === curFrame ? " active" : "");
   }
 }
 
-// ── 建立目前局的球格 ──
 function renderCurrentBalls() {
   const container = document.getElementById("currentBalls");
   container.innerHTML = "";
-  const totalBalls = curFrame === 9 ? 3 : 2;
-
-  for (let b = 0; b < totalBalls; b++) {
-    const div = document.createElement("div");
+  const total = curFrame === 9 ? 3 : 2;
+  for (let b = 0; b < total; b++) {
     const val = curBalls[b];
-
     let cls = "cur-ball";
-    if (val === undefined) {
-      cls += " waiting";
-    } else if (val === "X") {
-      cls += " strike-box";
-    } else if (val === "/") {
-      cls += " spare-box";
-    } else {
-      cls += " filled";
-    }
+    if (val === undefined)   cls += " waiting";
+    else if (val === "X")    cls += " strike-box";
+    else if (val === "/")    cls += " spare-box";
+    else                     cls += " filled";
+    const div = document.createElement("div");
     div.className = cls;
     div.textContent = val !== undefined ? val : "";
-
-    const label = document.createElement("span");
-    label.className = "ball-label";
-    label.textContent = `第${["一","二","三"][b]}球`;
-    div.appendChild(label);
-
+    const lbl = document.createElement("span");
+    lbl.className = "ball-label";
+    lbl.textContent = `第${["一","二","三"][b]}球`;
+    div.appendChild(lbl);
     container.appendChild(div);
   }
-
-  container.classList.add("fade-up");
-  setTimeout(() => container.classList.remove("fade-up"), 400);
 }
 
-// ── 局別標題 ──
 function updateTitle() {
   document.getElementById("frameTitle").textContent = FRAME_NAMES[curFrame];
 }
 
-// ── 數字轉換 ──
 function rawToValue(raw, prevPins) {
   if (raw === "X") return 10;
   if (raw === "/") return 10 - prevPins;
@@ -518,318 +696,274 @@ function rawToValue(raw, prevPins) {
   return parseInt(raw, 10) || 0;
 }
 
-// ── 重新計算累計分 ──
 function calcCumulative() {
-  // 把所有已完成的局 + 目前局目前球展平
-  const allFrames = [...frames, {
-    b1: curBalls[0], b2: curBalls[1], b3: curBalls[2]
-  }];
-
-  let flatRolls = [];
-  let flatRaws  = [];
-
+  const allFrames = [...frames, { b1: curBalls[0], b2: curBalls[1], b3: curBalls[2] }];
+  let flatRolls = [], flatRaws = [];
   for (let f = 0; f < allFrames.length; f++) {
     const fr = allFrames[f];
     if (fr.b1 === undefined) break;
     const v1 = rawToValue(fr.b1, 0);
     if (f < 9) {
-      flatRaws.push(fr.b1);
-      flatRolls.push(v1);
+      flatRaws.push(fr.b1); flatRolls.push(v1);
       if (fr.b1 !== "X") {
         if (fr.b2 === undefined) break;
-        const v2 = rawToValue(fr.b2, v1);
-        flatRaws.push(fr.b2);
-        flatRolls.push(v2);
+        flatRaws.push(fr.b2); flatRolls.push(rawToValue(fr.b2, v1));
       }
     } else {
-      // 第10局
-      const v1 = rawToValue(fr.b1, 0);
       flatRaws.push(fr.b1); flatRolls.push(v1);
       if (fr.b2 !== undefined) {
         const v2 = fr.b1 === "X" ? rawToValue(fr.b2, 0) : rawToValue(fr.b2, v1);
         flatRaws.push(fr.b2); flatRolls.push(v2);
         if (fr.b3 !== undefined) {
-          let prevFor3 = 0;
-          if (fr.b1 === "X" && fr.b2 === "X") prevFor3 = 0;
-          else if (fr.b1 === "X") prevFor3 = v2;
-          else if (fr.b2 === "/") prevFor3 = 0;
-          const v3 = rawToValue(fr.b3, prevFor3);
-          flatRaws.push(fr.b3); flatRolls.push(v3);
+          let p3 = 0;
+          if (fr.b1 === "X" && fr.b2 === "X") p3 = 0;
+          else if (fr.b1 === "X") p3 = v2;
+          flatRaws.push(fr.b3); flatRolls.push(rawToValue(fr.b3, p3));
         }
       }
     }
   }
-
-  // 計算累計
-  const cumulative = [];
+  const cum = [];
   let ri = 0;
   for (let f = 0; f < 10 && ri < flatRolls.length; f++) {
     if (f < 9) {
       if (flatRaws[ri] === "X") {
-        if (ri + 2 >= flatRolls.length) { cumulative.push(null); ri++; break; }
-        const pts = 10 + flatRolls[ri+1] + flatRolls[ri+2];
-        cumulative.push((cumulative[f-1] || 0) + pts);
-        ri++;
+        if (ri+2 >= flatRolls.length) { cum.push(null); ri++; break; }
+        cum.push((cum[f-1]||0) + 10 + flatRolls[ri+1] + flatRolls[ri+2]); ri++;
       } else if (flatRaws[ri+1] === "/") {
-        if (ri + 2 >= flatRolls.length) { cumulative.push(null); ri+=2; break; }
-        const pts = 10 + flatRolls[ri+2];
-        cumulative.push((cumulative[f-1] || 0) + pts);
-        ri += 2;
+        if (ri+2 >= flatRolls.length) { cum.push(null); ri+=2; break; }
+        cum.push((cum[f-1]||0) + 10 + flatRolls[ri+2]); ri+=2;
       } else {
-        if (ri + 1 >= flatRolls.length) { cumulative.push(null); ri+=2; break; }
-        const pts = flatRolls[ri] + flatRolls[ri+1];
-        cumulative.push((cumulative[f-1] || 0) + pts);
-        ri += 2;
+        if (ri+1 >= flatRolls.length) { cum.push(null); ri+=2; break; }
+        cum.push((cum[f-1]||0) + flatRolls[ri] + flatRolls[ri+1]); ri+=2;
       }
     } else {
-      // 第10局
-      const available = flatRolls.length - ri;
-      const r10a = flatRaws[ri], r10b = flatRaws[ri+1], r10c = flatRaws[ri+2];
-      const v10a = flatRolls[ri], v10b = flatRolls[ri+1], v10c = flatRolls[ri+2];
+      const avail = flatRolls.length - ri;
+      const r10b = flatRaws[ri+1], r10a = flatRaws[ri];
       const needs3 = r10a === "X" || r10b === "/";
-      if (available < 2) { cumulative.push(null); break; }
-      if (needs3 && available < 3) { cumulative.push(null); break; }
-      const pts = v10a + (v10b||0) + (needs3 ? (v10c||0) : 0);
-      cumulative.push((cumulative[f-1] || 0) + pts);
+      if (avail < 2) { cum.push(null); break; }
+      if (needs3 && avail < 3) { cum.push(null); break; }
+      cum.push((cum[f-1]||0) + flatRolls[ri] + (flatRolls[ri+1]||0) + (needs3 ? (flatRolls[ri+2]||0) : 0));
     }
   }
-
-  return cumulative;
+  return cum;
 }
 
-// ── 更新分數顯示 ──
 function updateScoreDisplay() {
   const cum = calcCumulative();
-  // 已完成的局更新 mini 卡
   frames.forEach((fr, i) => {
-    const balls = [fr.b1, fr.b2, fr.b3].filter(v => v !== undefined);
-    updateMiniFrame(i, balls, cum[i] ?? "");
+    updateMiniFrame(i, [fr.b1, fr.b2, fr.b3].filter(v => v !== undefined), cum[i] ?? "");
   });
-  // 目前局的 mini 卡（只顯示球）
   updateMiniFrame(curFrame, curBalls, null);
-
-  // 主分數
-  const lastValid = [...cum].reverse().find(v => v !== null);
+  const last = [...cum].reverse().find(v => v !== null);
   const el = document.getElementById("scoreValue");
-  if (lastValid !== undefined) {
-    el.textContent = lastValid;
-    el.className = "value";
-  } else {
-    el.textContent = "—";
-    el.className = "value pending";
-  }
+  el.textContent = last !== undefined ? last : "—";
 }
 
-// ── 判斷目前局是否完成 ──
 function isFrameDone() {
   if (curFrame < 9) {
-    if (curBalls[0] === "X") return true;      // strike
-    if (curBalls.length >= 2) return true;     // 2球
-  } else {
-    // 第10局
-    if (curBalls.length < 2) return false;
-    const b1 = curBalls[0], b2 = curBalls[1];
-    const needs3 = b1 === "X" || b2 === "/";
-    if (needs3) return curBalls.length >= 3;
-    return curBalls.length >= 2;
+    return curBalls[0] === "X" || curBalls.length >= 2;
   }
-  return false;
+  if (curBalls.length < 2) return false;
+  const needs3 = curBalls[0] === "X" || curBalls[1] === "/";
+  return needs3 ? curBalls.length >= 3 : curBalls.length >= 2;
 }
 
-// ── 建立鍵盤 ──
 function buildKeypad() {
   const pad = document.getElementById("keypad");
   pad.innerHTML = "";
-
   const ballIdx = curBalls.length;
-  const prev = ballIdx > 0 ? rawToValue(curBalls[ballIdx-1], 0) : 0;
-  const b1val = curBalls[0] !== undefined ? rawToValue(curBalls[0], 0) : null;
-
-  // 計算最大可輸入pin數
   let maxPins = 10;
   if (curFrame < 9) {
     if (ballIdx === 1 && curBalls[0] !== "X") maxPins = 10 - rawToValue(curBalls[0], 0);
   } else {
-    // 第10局
-    if (ballIdx === 1) {
-      if (curBalls[0] !== "X") maxPins = 10 - rawToValue(curBalls[0], 0);
-    } else if (ballIdx === 2) {
-      if (curBalls[1] === "/") maxPins = 10;
-      else if (curBalls[0] === "X") {
-        if (curBalls[1] === "X") maxPins = 10;
-        else maxPins = 10 - rawToValue(curBalls[1], 0);
-      } else maxPins = 10;
+    if (ballIdx === 1 && curBalls[0] !== "X") maxPins = 10 - rawToValue(curBalls[0], 0);
+    else if (ballIdx === 2) {
+      if (curBalls[0] === "X" && curBalls[1] !== "X") maxPins = 10 - rawToValue(curBalls[1], 0);
     }
   }
+  const canSpare = ballIdx === 1 && curBalls[0] !== "X";
+  const canSpare10 = curFrame === 9 && ballIdx === 2 && curBalls[0] === "X" && curBalls[1] !== "X" && curBalls[1] !== "/";
 
-  // 允許 Spare (/) 的條件
-  const canSpare = ballIdx === 1 && curBalls[0] !== "X" && curBalls[0] !== undefined;
-  // 第10局第3球若第2球是spare也可（already handled by /）
-  const canSpare10 = curFrame === 9 && ballIdx === 2 && curBalls[1] !== "X" && curBalls[1] !== "/" && curBalls[0] === "X";
-
-  // 鍵盤佈局：0~9、X（全倒）、/（補中）、-（溝球）、⌫
   const keys = [
-    {label:"1", val:"1"}, {label:"2", val:"2"}, {label:"3", val:"3"}, {label:"X", val:"X", cls:"key-strike"},
-    {label:"4", val:"4"}, {label:"5", val:"5"}, {label:"6", val:"6"}, {label:"/", val:"/", cls:"key-spare"},
-    {label:"7", val:"7"}, {label:"8", val:"8"}, {label:"9", val:"9"}, {label:"0", val:"0"},
-    {label:"-", val:"-", cls:"key-gutter"},  {label:"", val:"", cls:"key-gutter", disabled:true},
-    {label:"", val:"", cls:"key-gutter", disabled:true}, {label:"⌫", val:"DEL", cls:"key-del"},
+    {label:"1",val:"1"},{label:"2",val:"2"},{label:"3",val:"3"},{label:"X",val:"X",cls:"key-strike"},
+    {label:"4",val:"4"},{label:"5",val:"5"},{label:"6",val:"6"},{label:"/",val:"/",cls:"key-spare"},
+    {label:"7",val:"7"},{label:"8",val:"8"},{label:"9",val:"9"},{label:"0",val:"0"},
+    {label:"-",val:"-",cls:"key-gutter"},{label:"",val:"",cls:"key-gutter",disabled:true},
+    {label:"",val:"",cls:"key-gutter",disabled:true},{label:"⌫",val:"DEL",cls:"key-del"},
   ];
 
   keys.forEach(k => {
     const btn = document.createElement("button");
     btn.className = "key " + (k.cls || "key-num");
     btn.textContent = k.label;
-
-    // 決定是否 disabled
     let dis = k.disabled || false;
     if (!dis && k.val !== "DEL" && k.val !== "") {
       if (k.val === "X") {
-        // Strike 只在第1球、或第10局特定位置
-        const isFirst = ballIdx === 0;
-        const is10thBallOK = curFrame === 9 && (ballIdx === 0 || (ballIdx === 1 && curBalls[0] === "X") || (ballIdx === 2 && curBalls[1] === "X"));
-        dis = !(isFirst || (curFrame === 9 && is10thBallOK));
-        if (curFrame < 9 && ballIdx !== 0) dis = true;
+        const ok0 = ballIdx === 0;
+        const ok10 = curFrame === 9 && (ballIdx === 0 || (ballIdx === 1 && curBalls[0] === "X") || (ballIdx === 2 && curBalls[1] === "X"));
+        dis = curFrame < 9 ? !ok0 : !ok10;
       } else if (k.val === "/") {
         dis = !(canSpare || canSpare10);
-      } else if (k.val === "-") {
-        dis = false;
-      } else {
-        const num = parseInt(k.val, 10);
-        dis = num > maxPins;
+      } else if (k.val !== "-") {
+        dis = parseInt(k.val, 10) > maxPins;
       }
     }
     if (dis) btn.disabled = true;
-
     btn.addEventListener("click", () => handleInput(k.val));
     pad.appendChild(btn);
   });
 }
 
-// ── 處理輸入 ──
 function handleInput(val) {
   if (val === "DEL") {
     if (curBalls.length > 0) {
       curBalls.pop();
-      renderCurrentBalls();
-      updateTitle();
+      renderCurrentBalls(); updateTitle();
       updateMiniFrame(curFrame, curBalls, null);
       buildKeypad();
     }
     return;
   }
   if (val === "") return;
-
   curBalls.push(val);
-  renderCurrentBalls();
-  updateTitle();
-  updateScoreDisplay();
-  buildKeypad();
-
-  if (isFrameDone()) {
-    setTimeout(() => advanceFrame(), 420);
-  }
+  renderCurrentBalls(); updateTitle();
+  updateScoreDisplay(); buildKeypad();
+  if (isFrameDone()) setTimeout(advanceFrame, 420);
 }
 
-// ── 完成一局，推進到下一局 ──
 function advanceFrame() {
   frames.push({ b1: curBalls[0], b2: curBalls[1], b3: curBalls[2] });
-  updateScoreDisplay(); // 確保 mini 卡有最終分
-
-  if (curFrame >= 9) {
-    showDone();
-    return;
-  }
-
+  updateScoreDisplay();
+  if (curFrame >= 9) { showDone(); return; }
   curFrame++;
   curBalls = [];
-  updateActiveFrame();
-  updateTitle();
-  renderCurrentBalls();
-  buildKeypad();
-
+  updateActiveFrame(); updateTitle(); renderCurrentBalls(); buildKeypad();
   document.getElementById("frameTitle").classList.add("fade-up");
   setTimeout(() => document.getElementById("frameTitle").classList.remove("fade-up"), 400);
 }
 
-// ── 顯示完成畫面 ──
 function showDone() {
   const cum = calcCumulative();
-  const total = cum[9] ?? "？";
-  document.getElementById("finalScore").textContent = total;
+  document.getElementById("finalScore").textContent = cum[9] ?? "？";
   document.getElementById("inputPanel").style.display = "none";
   document.getElementById("donePanel").classList.add("show");
+}
+
+function doReset() {
+  frames = []; curBalls = []; curFrame = 0; rolls = [];
+  document.getElementById("inputPanel").style.display = "";
+  document.getElementById("donePanel").classList.remove("show");
+  document.getElementById("msg").textContent = "";
+  document.getElementById("scoreValue").textContent = "—";
+  buildMiniTable(); updateActiveFrame(); updateTitle(); renderCurrentBalls(); buildKeypad();
 }
 
 // ── 送出 ──
 document.getElementById("btnSubmit").addEventListener("click", async () => {
   const msgEl = document.getElementById("msg");
   msgEl.className = "";
-
   const player = document.getElementById("playerSelect").value;
-  if (!player) {
-    msgEl.textContent = "⚠️ 請先選擇球員姓名";
-    msgEl.className = "error";
-    return;
-  }
-
-  if (APPS_SCRIPT_URL === "YOUR_APPS_SCRIPT_URL_HERE") {
-    msgEl.textContent = "⚠️ 請先填入 Apps Script URL";
-    msgEl.className = "error";
-    return;
-  }
-
+  if (!player) { msgEl.textContent = "⚠️ 請先選擇球員姓名"; msgEl.className = "error"; return; }
   const today = new Date();
   const date = `${today.getFullYear()}-${String(today.getMonth()+1).padStart(2,"0")}-${String(today.getDate()).padStart(2,"0")}`;
   const cum = calcCumulative();
-
   const payload = {
-    date,
-    player,
-    frames: frames.map((fr, i) => ({
-      b1: fr.b1 || "",
-      b2: fr.b2 || "",
-      b3: fr.b3 || "",
-      score: cum[i] != null ? String(cum[i]) : ""
-    }))
+    date, player,
+    frames: frames.map((fr, i) => ({ b1:fr.b1||"", b2:fr.b2||"", b3:fr.b3||"", score: cum[i]!=null?String(cum[i]):"" }))
   };
-
   msgEl.textContent = "傳送中…";
   try {
-    await fetch(APPS_SCRIPT_URL, {
-      method: "POST",
-      mode: "no-cors",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload)
-    });
+    await fetch(APPS_SCRIPT_URL, { method:"POST", mode:"no-cors", headers:{"Content-Type":"application/json"}, body:JSON.stringify(payload) });
     msgEl.textContent = "✅ 已上傳！";
-    msgEl.className = "";
-  } catch (e) {
+    // 1.5 秒後自動重置
+    setTimeout(() => doReset(), 1500);
+  } catch(e) {
     msgEl.textContent = "❌ 上傳失敗：" + e.message;
     msgEl.className = "error";
   }
 });
 
-// ── 重新開始 ──
-document.getElementById("btnRestart").addEventListener("click", () => {
-  frames = []; curBalls = []; curFrame = 0; rolls = [];
-  document.getElementById("inputPanel").style.display = "";
-  document.getElementById("donePanel").classList.remove("show");
-  document.getElementById("msg").textContent = "";
-  document.getElementById("scoreValue").textContent = "—";
-  buildMiniTable();
-  updateActiveFrame();
-  updateTitle();
-  renderCurrentBalls();
-  buildKeypad();
+document.getElementById("btnRestart").addEventListener("click", doReset);
+
+// ══ 歷史查詢 ══
+document.getElementById("btnLoadHistory").addEventListener("click", async () => {
+  const player = document.getElementById("historySelect").value;
+  const list = document.getElementById("historyList");
+  if (!player) { list.innerHTML = `<div class="empty-hint">請先選擇球員</div>`; return; }
+  list.innerHTML = `<div class="loading-hint">載入中…</div>`;
+  try {
+    const res = await fetch(`${APPS_SCRIPT_URL}?action=history&player=${encodeURIComponent(player)}`);
+    const data = await res.json();
+    if (!data.records || data.records.length === 0) {
+      list.innerHTML = `<div class="empty-hint">尚無紀錄</div>`; return;
+    }
+    list.innerHTML = data.records.slice().reverse().map(r => `
+      <div class="history-item">
+        <div>
+          <div class="history-date">${r.date}</div>
+          <div class="history-frames">${r.balls}</div>
+        </div>
+        <div class="history-score">${r.total}</div>
+      </div>`).join("");
+  } catch(e) {
+    list.innerHTML = `<div class="empty-hint">載入失敗，請確認網路或 Apps Script URL</div>`;
+  }
+});
+
+// ══ 統計查詢 ══
+document.getElementById("btnLoadStats").addEventListener("click", async () => {
+  const player = document.getElementById("statsSelect").value;
+  const sl = document.getElementById("statsList");
+  if (!player) { sl.innerHTML = `<div class="empty-hint">請先選擇球員</div>`; return; }
+  sl.innerHTML = `<div class="loading-hint">載入中…</div>`;
+  try {
+    const res = await fetch(`${APPS_SCRIPT_URL}?action=history&player=${encodeURIComponent(player)}`);
+    const data = await res.json();
+    if (!data.records || data.records.length === 0) {
+      sl.innerHTML = `<div class="empty-hint">尚無紀錄</div>`; return;
+    }
+    const totals = data.records.map(r => parseInt(r.total, 10)).filter(n => !isNaN(n));
+    const avg  = Math.round(totals.reduce((a,b) => a+b, 0) / totals.length);
+    const best = Math.max(...totals);
+    const worst = Math.min(...totals);
+    const games = totals.length;
+    const recent5 = totals.slice(-5);
+    const maxT = Math.max(...recent5, 1);
+    const bars = recent5.map((v, i) =>
+      `<div class="trend-bar${i===recent5.length-1?' latest':''}" style="height:${Math.round(v/maxT*100)}%"></div>`
+    ).join("");
+
+    sl.innerHTML = `
+      <div class="stat-card">
+        <div class="stat-card-title">平均分</div>
+        <div class="stat-card-value">${avg}</div>
+        <div class="stat-card-sub">共 ${games} 場紀錄</div>
+      </div>
+      <div class="stat-grid">
+        <div class="stat-card">
+          <div class="stat-card-title">最高分</div>
+          <div class="stat-card-value">${best}</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-card-title">最低分</div>
+          <div class="stat-card-value">${worst}</div>
+        </div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-card-title">近期趨勢（最近 ${recent5.length} 場）</div>
+        <div class="trend-bars">${bars}</div>
+        <div class="stat-card-sub" style="margin-top:8px">
+          ${recent5.map((v,i) => `<span style="color:${i===recent5.length-1?'var(--strike)':'var(--muted)'}">${v}</span>`).join(" → ")}
+        </div>
+      </div>`;
+  } catch(e) {
+    sl.innerHTML = `<div class="empty-hint">載入失敗，請確認網路或 Apps Script URL</div>`;
+  }
 });
 
 // ── 啟動 ──
-buildMiniTable();
-updateActiveFrame();
-updateTitle();
-renderCurrentBalls();
-buildKeypad();
+buildMiniTable(); updateActiveFrame(); updateTitle(); renderCurrentBalls(); buildKeypad();
 </script>
 </body>
 </html>
