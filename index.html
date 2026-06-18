@@ -1068,6 +1068,9 @@
     </div>
   </div>
 
+  <div style="display:flex;gap:8px;flex-shrink:0">
+    <button class="btn-sm" id="btnClearComp" style="background:var(--card);color:var(--muted);border:1px solid var(--border);flex:1">清除結果</button>
+  </div>
   <div class="comp-result" id="compResult"><div class="empty-hint">輸入競賽代碼查詢，或選好球員後按查詢</div></div>
 </div>
 
@@ -1079,6 +1082,20 @@
     <div class="modal-btns">
       <button class="btn btn-secondary" id="editModalCancel">取消</button>
       <button class="btn btn-primary" id="editModalConfirm">確認修改</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ 修改競賽代碼 Modal ══ -->
+<div class="modal-overlay" id="editCodeModal">
+  <div class="modal-box">
+    <div class="modal-title">修改競賽代碼</div>
+    <div class="modal-body" id="editCodeModalBody"></div>
+    <input type="text" id="editCodeInput" placeholder="輸入新的競賽代碼"
+      style="width:100%;background:var(--bg);color:var(--text);border:1px solid var(--border);border-radius:6px;padding:8px 10px;font-size:.95rem;font-family:inherit;outline:none;margin-bottom:14px;text-align:center">
+    <div class="modal-btns">
+      <button class="btn btn-secondary" id="editCodeModalCancel">取消</button>
+      <button class="btn btn-primary" id="editCodeModalConfirm">確認修改</button>
     </div>
   </div>
 </div>
@@ -1632,10 +1649,15 @@ function renderHistoryList() {
   if (!currentHistoryRecords.length) { list.innerHTML = `<div class="empty-hint">尚無紀錄</div>`; return; }
   list.innerHTML = currentHistoryRecords.map((r, idx) => {
     const d = String(r.date).replace(/T[\s\S]*/, "").replace(/-/g, "/");
+    const codeTag = r.compCode
+      ? `<span style="color:var(--strike);font-size:.65rem;cursor:pointer" onclick="askEditCode(${idx})">🏆 ${r.compCode} ✏️</span>`
+      : r.isCompetition
+        ? `<span style="color:var(--muted);font-size:.65rem;cursor:pointer" onclick="askEditCode(${idx})">🏆 無代碼 ✏️</span>`
+        : `<span style="color:var(--border);font-size:.65rem;cursor:pointer" onclick="askEditCode(${idx})">＋ 設競賽代碼</span>`;
     return `
     <div class="history-item" data-idx="${idx}">
       <div>
-        <div class="history-date">${d}</div>
+        <div class="history-date">${d} ${codeTag}</div>
         <div class="history-frames">${r.balls}</div>
       </div>
       <div class="history-score">${r.total}</div>
@@ -1666,6 +1688,52 @@ document.getElementById("btnLoadHistory").addEventListener("click", () => {
   const player = document.getElementById("historySelect").value;
   if (!player) { document.getElementById("historyList").innerHTML = `<div class="empty-hint">請先選擇球員</div>`; return; }
   loadHistory(player);
+});
+
+// ══ 修改競賽代碼 ══
+let editCodeTargetIdx = -1;
+
+function askEditCode(idx) {
+  editCodeTargetIdx = idx;
+  const r = currentHistoryRecords[idx];
+  const d = String(r.date).replace(/T[\s\S]*/, "").replace(/-/g, "/");
+  document.getElementById("editCodeModalBody").innerHTML =
+    `修改 <strong>${d}</strong>（${r.total} 分）的競賽代碼`;
+  document.getElementById("editCodeInput").value = r.compCode || "";
+  document.getElementById("editCodeModal").classList.add("show");
+}
+
+document.getElementById("editCodeModalCancel").addEventListener("click", () => {
+  document.getElementById("editCodeModal").classList.remove("show");
+  editCodeTargetIdx = -1;
+});
+
+document.getElementById("editCodeModalConfirm").addEventListener("click", async () => {
+  document.getElementById("editCodeModal").classList.remove("show");
+  if (editCodeTargetIdx < 0) return;
+  const newCode = document.getElementById("editCodeInput").value.trim();
+  const r = currentHistoryRecords[editCodeTargetIdx];
+  const originalIdx = currentHistoryRecords.length - 1 - editCodeTargetIdx;
+  document.getElementById("historyList").innerHTML = `<div class="loading-hint">更新中…</div>`;
+  try {
+    await fetch(APPS_SCRIPT_URL, {
+      method: "POST", mode: "no-cors",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        action: "updateCompCode",
+        player: currentHistoryPlayer,
+        recordIndex: originalIdx,
+        compCode: newCode
+      })
+    });
+    // 更新本地資料
+    currentHistoryRecords[editCodeTargetIdx].compCode = newCode;
+    currentHistoryRecords[editCodeTargetIdx].isCompetition = newCode.length > 0;
+    editCodeTargetIdx = -1;
+    renderHistoryList();
+  } catch(e) {
+    document.getElementById("historyList").innerHTML = `<div class="empty-hint">更新失敗</div>`;
+  }
 });
 
 // ══ 刪除 ══
@@ -1931,6 +1999,19 @@ function refreshAllSelects() {
 addMember('a');
 addMember('b');
 
+// ── 清除競賽結果 ──
+document.getElementById("btnClearComp").addEventListener("click", () => {
+  document.getElementById("compCodeInput").value = "";
+  document.getElementById("compResult").innerHTML =
+    `<div class="empty-hint">輸入競賽代碼查詢，或選好球員後按查詢</div>`;
+  compScores = {};
+  // 重置兩組人員
+  document.getElementById("teamAMembers").innerHTML = "";
+  document.getElementById("teamBMembers").innerHTML = "";
+  addMember('a');
+  addMember('b');
+});
+
 // ── 查詢競賽結果 ──
 document.getElementById("btnLoadComp").addEventListener("click", async () => {
   const code = document.getElementById("compCodeInput").value.trim();
@@ -1948,6 +2029,7 @@ document.getElementById("btnLoadComp").addEventListener("click", async () => {
     cr.innerHTML = `<div class="empty-hint">請輸入競賽代碼</div>`; return;
   }
 
+  compScores = {};
   cr.innerHTML = `<div class="loading-hint">載入中…</div>`;
 
   try {
