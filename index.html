@@ -1174,6 +1174,7 @@
     </div>
     <div class="divider"></div>
     <div class="keypad" id="keypad"></div>
+    <button class="btn btn-secondary" id="btnAbortRecord" style="flex-shrink:0;padding:8px;font-size:.85rem;color:#e74c3c;border-color:#e74c3c">放棄本次記錄</button>
   </div>
 
   <!-- 完成畫面 -->
@@ -1957,6 +1958,12 @@ document.getElementById("btnSubmit").addEventListener("click", async () => {
 
 document.getElementById("btnRestart").addEventListener("click", doReset);
 
+document.getElementById("btnAbortRecord").addEventListener("click", () => {
+  if (frames.length === 0 && curBalls.length === 0) { doReset(); return; }
+  if (!confirm("確定要放棄本次記錄？所有輸入將清除。")) return;
+  doReset();
+});
+
 // ══ 共用：取得球員統計資料 ══
 async function fetchPlayerStats(player) {
   const res = await fetch(`${APPS_SCRIPT_URL}?action=history&player=${encodeURIComponent(player)}`);
@@ -2609,23 +2616,22 @@ document.getElementById("btnAddTeamPlayer").addEventListener("click", () => addT
 addTeamPlayer(); addTeamPlayer();
 
 // ══ 遊戲狀態 ══
-let tPlayers  = [];   // ["李岱柏","李咨亨", ...]
-let tFrames   = {};   // { "李岱柏": [{b1,b2,b3},...], ... }
-let tBalls    = [];   // 當前球員目前局的球
-let tCurFrame = 0;    // 0~9
-let tCurPlayerIdx = 0;
+let tPlayers     = [];   // ["李岱柏","李咨亨", ...]
+let tFrames      = {};   // { "李岱柏": [{b1,b2,b3},...], ... }
+let tPlayerFrame = {};   // { "李岱柏": 0, ... } 每人各自的當前局數
+let tBalls       = [];   // 當前輸入球員目前局的球
+let tCurPlayerIdx = 0;   // 目前選中的球員 index
 let tCompCode = "";
 
 function tCurPlayer() { return tPlayers[tCurPlayerIdx]; }
+function tCurFrame()  { return tPlayerFrame[tCurPlayer()] ?? 0; }
 
 // ── 累計分計算（同記錄頁邏輯）──
 function tCalcCumulative(playerName) {
   const allF = [...(tFrames[playerName] || [])];
-  if (tCurPlayerIdx === tPlayers.indexOf(playerName) || allF.length <= tCurFrame) {
-    // 若是當前球員，把目前輸入中的球也算進去
-    if (playerName === tCurPlayer()) {
-      allF[tCurFrame] = { b1: tBalls[0], b2: tBalls[1], b3: tBalls[2] };
-    }
+  // 若是當前輸入球員，把目前輸入中的球也算進去
+  if (playerName === tCurPlayer()) {
+    allF[tCurFrame()] = { b1: tBalls[0], b2: tBalls[1], b3: tBalls[2] };
   }
   let flatRolls = [], flatRaws = [];
   for (let f = 0; f < allF.length; f++) {
@@ -2681,7 +2687,7 @@ function tCalcCumulative(playerName) {
 function tRenderBalls() {
   const container = document.getElementById("teamBalls");
   container.innerHTML = "";
-  const total = tCurFrame === 9 ? 3 : 2;
+  const total = tCurFrame() === 9 ? 3 : 2;
   for (let b = 0; b < total; b++) {
     const val = tBalls[b];
     let cls = "cur-ball";
@@ -2707,45 +2713,74 @@ function tUpdateScoreDisplay() {
   document.getElementById("teamScoreValue").textContent = last !== undefined ? last : "—";
 }
 
-// ── 更新所有人分數總覽（精簡列表）──
+// ── 更新所有人分數總覽（可點擊切換）──
 function tUpdateScoreboard() {
   const sb = document.getElementById("gameScoreboard");
 
-  // 計算每人目前分數，排序用
-  const playerScores = tPlayers.map((p, pi) => {
-    const cum = tCalcCumulative(p);
-    const last = [...cum].reverse().find(v => v !== null);
-    const completedFrames = tFrames[p] ? tFrames[p].filter(Boolean).length : 0;
-    const isCur = pi === tCurPlayerIdx;
-    const isDone = completedFrames >= 10;
-    return { p, pi, last, isCur, isDone };
-  });
-
   sb.innerHTML = `
-    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(90px,1fr));gap:4px">
-      ${playerScores.map(({ p, isCur, isDone, last }) => {
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(84px,1fr));gap:4px">
+      ${tPlayers.map((p, pi) => {
+        const cum = tCalcCumulative(p);
+        const last = [...cum].reverse().find(v => v !== null);
+        const pFrame = tPlayerFrame[p] ?? 0;
+        const isDone = pFrame >= 10;
+        const isCur = pi === tCurPlayerIdx;
         const nameColor = isCur ? "var(--accent)" : "var(--text)";
         const scoreColor = isDone ? "var(--spare)" : isCur ? "var(--accent)" : "var(--muted)";
-        const border = isCur ? "border:1px solid var(--accent);box-shadow:0 0 4px rgba(59,158,222,.3)" : "border:1px solid var(--border)";
-        return `<div style="${border};border-radius:6px;padding:4px 6px;background:var(--bg)">
-          <div style="font-size:.7rem;color:${nameColor};font-weight:${isCur?'bold':'normal'};white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${isCur?"▶ ":""}${p}</div>
-          <div style="font-size:1rem;font-weight:bold;color:${scoreColor};text-align:right">${last !== undefined ? last : "—"}</div>
+        const border = isCur
+          ? "border:1px solid var(--accent);box-shadow:0 0 5px rgba(59,158,222,.4)"
+          : isDone
+            ? "border:1px solid var(--spare)"
+            : "border:1px solid var(--border)";
+        const frameLabel = isDone ? "完成" : FRAME_NAMES[pFrame].slice(1);
+        return `<div onclick="tSwitchPlayer(${pi})"
+          style="${border};border-radius:6px;padding:5px 7px;background:var(--bg);cursor:pointer;transition:border-color .15s">
+          <div style="display:flex;justify-content:space-between;align-items:center">
+            <div style="font-size:.68rem;color:${nameColor};font-weight:${isCur?'bold':'normal'};white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:60px">${p}</div>
+            <div style="font-size:.55rem;color:${isDone?'var(--spare)':'var(--muted)'};flex-shrink:0">${frameLabel}</div>
+          </div>
+          <div style="font-size:1.1rem;font-weight:bold;color:${scoreColor};text-align:right;margin-top:1px">${last !== undefined ? last : "—"}</div>
         </div>`;
       }).join("")}
     </div>`;
 }
 
+// ── 點擊卡片切換輸入球員 ──
+function tSwitchPlayer(pi) {
+  if (pi === tCurPlayerIdx) return; // 已是當前球員
+  const p = tPlayers[pi];
+  if ((tPlayerFrame[p] ?? 0) >= 10) return; // 已完成不能切換
+
+  // 儲存目前輸入中但未完成的球（清除）
+  tBalls = [];
+  tCurPlayerIdx = pi;
+
+  tUpdateHeader();
+  tRenderBalls();
+  tUpdateScoreDisplay();
+  tUpdateScoreboard();
+  tBuildKeypad();
+
+  document.getElementById("gamePlayerName").classList.add("fade-up");
+  setTimeout(() => document.getElementById("gamePlayerName").classList.remove("fade-up"), 300);
+}
+
 // ── 更新頂部標題 ──
 function tUpdateHeader() {
   document.getElementById("gamePlayerName").textContent = tCurPlayer();
-  document.getElementById("gamePlayerOrder").textContent = `第 ${tCurPlayerIdx+1} 位`;
-  document.getElementById("gameFrameLabel").textContent = FRAME_NAMES[tCurFrame];
-  document.getElementById("gameProgressText").textContent = `${tCurPlayerIdx+1} / ${tPlayers.length}`;
+  document.getElementById("gamePlayerOrder").textContent =
+    `第 ${tCurPlayerIdx+1} 位・${FRAME_NAMES[tCurFrame()]}`;
+  document.getElementById("gameFrameLabel").textContent = FRAME_NAMES[tCurFrame()];
+  // 顯示整體完成進度
+  const totalDone = tPlayers.reduce((acc, p) => acc + (tPlayerFrame[p] ?? 0), 0);
+  const totalPossible = tPlayers.length * 10;
+  document.getElementById("gameProgressText").textContent = `${totalDone}/${totalPossible} 局`;
 }
 
 // ── 判斷當前球員當前局是否完成 ──
 function tIsFrameDone() {
-  if (tCurFrame < 9) return tBalls[0] === "X" || tBalls.length >= 2;
+  const f = tCurFrame();
+  if (f < 9) return tBalls[0] === "X" || tBalls.length >= 2;
   if (tBalls.length < 2) return false;
   const needs3 = tBalls[0] === "X" || tBalls[1] === "/";
   return needs3 ? tBalls.length >= 3 : tBalls.length >= 2;
@@ -2755,9 +2790,10 @@ function tIsFrameDone() {
 function tBuildKeypad() {
   const pad = document.getElementById("teamKeypad");
   pad.innerHTML = "";
+  const f = tCurFrame();
   const ballIdx = tBalls.length;
   let maxPins = 10;
-  if (tCurFrame < 9) {
+  if (f < 9) {
     if (ballIdx === 1 && tBalls[0] !== "X") maxPins = 10 - rawToValue(tBalls[0], 0);
   } else {
     if (ballIdx === 1 && tBalls[0] !== "X") maxPins = 10 - rawToValue(tBalls[0], 0);
@@ -2765,7 +2801,7 @@ function tBuildKeypad() {
       maxPins = 10 - rawToValue(tBalls[1], 0);
   }
   const canSpare = ballIdx === 1 && tBalls[0] !== "X";
-  const canSpare10 = tCurFrame === 9 && ballIdx === 2 && tBalls[0] === "X" && tBalls[1] !== "X" && tBalls[1] !== "/";
+  const canSpare10 = f === 9 && ballIdx === 2 && tBalls[0] === "X" && tBalls[1] !== "X" && tBalls[1] !== "/";
 
   const keys = [
     {label:"1",val:"1"},{label:"2",val:"2"},{label:"3",val:"3"},{label:"X",val:"X",cls:"key-strike"},
@@ -2783,10 +2819,10 @@ function tBuildKeypad() {
     if (!dis && k.val !== "DEL" && k.val !== "") {
       if (k.val === "X") {
         const ok0 = ballIdx === 0;
-        const ok10 = tCurFrame === 9 && (ballIdx === 0 ||
+        const ok10 = f === 9 && (ballIdx === 0 ||
           (ballIdx === 1 && tBalls[0] === "X") ||
           (ballIdx === 2 && (tBalls[1] === "X" || tBalls[1] === "/")));
-        dis = tCurFrame < 9 ? !ok0 : !ok10;
+        dis = f < 9 ? !ok0 : !ok10;
       } else if (k.val === "/") {
         dis = !(canSpare || canSpare10);
       } else if (k.val !== "-") {
@@ -2812,26 +2848,30 @@ function tHandleInput(val) {
   if (tIsFrameDone()) setTimeout(tAdvance, 420);
 }
 
-// ── 完成一球員一局，切換到下一位或下一局 ──
+// ── 完成一球員一局，更新進度，等待手動切換 ──
 function tAdvance() {
-  // 儲存當前球員當前局
-  if (!tFrames[tCurPlayer()]) tFrames[tCurPlayer()] = [];
-  tFrames[tCurPlayer()][tCurFrame] = { b1: tBalls[0], b2: tBalls[1], b3: tBalls[2] };
-  tUpdateScoreboard();
+  const p = tCurPlayer();
+  const f = tCurFrame();
 
-  // 切換到下一位球員
-  tCurPlayerIdx++;
+  // 儲存該球員該局
+  if (!tFrames[p]) tFrames[p] = [];
+  tFrames[p][f] = { b1: tBalls[0], b2: tBalls[1], b3: tBalls[2] };
 
-  if (tCurPlayerIdx >= tPlayers.length) {
-    // 所有人都打完本局，進入下一局
-    tCurPlayerIdx = 0;
-    tCurFrame++;
-  }
-
-  // 全部 10 局結束
-  if (tCurFrame >= 10) { tShowGameOver(); return; }
-
+  // 推進該球員的局數
+  tPlayerFrame[p] = f + 1;
   tBalls = [];
+
+  // 檢查所有人是否都完成 10 局
+  const allDone = tPlayers.every(pl => (tPlayerFrame[pl] ?? 0) >= 10);
+  if (allDone) { tShowGameOver(); return; }
+
+  // 自動跳到下一位尚未完成的球員（同局優先）
+  const targetFrame = Math.min(...tPlayers.map(pl => tPlayerFrame[pl] ?? 0));
+  const nextIdx = tPlayers.findIndex((pl, i) =>
+    i !== tCurPlayerIdx && (tPlayerFrame[pl] ?? 0) < 10 && (tPlayerFrame[pl] ?? 0) <= targetFrame
+  );
+  if (nextIdx >= 0) tCurPlayerIdx = nextIdx;
+
   tUpdateHeader();
   tRenderBalls();
   tUpdateScoreDisplay();
@@ -2848,7 +2888,6 @@ function tShowGameOver() {
   const panel = document.getElementById("teamGameOverPanel");
   panel.classList.add("show");
 
-  // 計算每人總分並排名
   const results = tPlayers.map(p => {
     const cum = tCalcCumulative(p);
     const total = cum[9] ?? 0;
@@ -2872,8 +2911,8 @@ document.getElementById("btnStartTeamGame").addEventListener("click", () => {
     return;
   }
   tCompCode = document.getElementById("teamCompCode").value.trim();
-  tFrames = {}; tPlayers.forEach(p => tFrames[p] = []);
-  tBalls = []; tCurFrame = 0; tCurPlayerIdx = 0;
+  tFrames = {}; tPlayerFrame = {}; tBalls = []; tCurPlayerIdx = 0;
+  tPlayers.forEach(p => { tFrames[p] = []; tPlayerFrame[p] = 0; });
 
   document.getElementById("teamSetupPanel").style.display = "none";
   document.getElementById("teamGamePanel").style.display = "flex";
@@ -2916,10 +2955,11 @@ document.getElementById("btnUploadTeam").addEventListener("click", async () => {
         const cum = tCalcCumulative(p);
         return {
           player: p,
-          frames: (tFrames[p] || []).map((fr, i) => ({
-            b1: fr?.b1 || "", b2: fr?.b2 || "", b3: fr?.b3 || "",
-            score: cum[i] != null ? String(cum[i]) : ""
-          }))
+          frames: Array.from({length: 10}, (_, i) => {
+            const fr = tFrames[p]?.[i];
+            return { b1: fr?.b1 || "", b2: fr?.b2 || "", b3: fr?.b3 || "",
+                     score: cum[i] != null ? String(cum[i]) : "" };
+          })
         };
       })
     };
