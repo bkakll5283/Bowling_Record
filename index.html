@@ -46,17 +46,19 @@
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      gap: 2px;
-      font-size: .62rem;
+      gap: 1px;
+      font-size: .52rem;
       color: var(--muted);
       border: none;
       background: none;
       cursor: pointer;
       transition: color .15s;
+      padding: 4px 0;
+      min-width: 0;
     }
 
     .nav-btn.active { color: var(--accent); }
-    .nav-btn svg { width: 20px; height: 20px; fill: currentColor; }
+    .nav-btn svg { width: 18px; height: 18px; fill: currentColor; flex-shrink: 0; }
 
     /* ══ 頁面容器 ══ */
     .page {
@@ -1248,43 +1250,49 @@
   </div>
 </div>
 
-<!-- ══ 比較頁 ══ -->
-<div class="page" id="pageVs">
-  <div class="page-title">對戰比較</div>
-  <div class="vs-header">
-    <div class="vs-select-wrap">
-      <label>球員 A</label>
-      <select class="select-sm" id="vsSelectA">
-        <option value="">請選擇</option>
-        <option>李岱柏</option><option>李咨亨</option><option>孫世展</option>
-        <option>邱晉倫</option><option>吳媮珊</option><option>劉伯鴻</option>
-        <option>孫世益</option><option>張雅雰</option><option>莊哲嘉</option>
-        <option>邱朝昱</option><option>陳騰九</option>
-      </select>
-    </div>
-    <div class="vs-badge">VS</div>
-    <div class="vs-select-wrap">
-      <label>球員 B</label>
-      <select class="select-sm" id="vsSelectB">
-        <option value="">請選擇</option>
-        <option>李岱柏</option><option>李咨亨</option><option>孫世展</option>
-        <option>邱晉倫</option><option>吳媮珊</option><option>劉伯鴻</option>
-        <option>孫世益</option><option>張雅雰</option><option>莊哲嘉</option>
-        <option>邱朝昱</option><option>陳騰九</option>
-      </select>
-    </div>
-  </div>
-  <button class="btn-sm" id="btnLoadVs" style="width:100%">比較</button>
-  <div class="vs-list" id="vsList"><div class="empty-hint">請選擇兩位球員後按比較</div></div>
-</div>
-
-<!-- ══ 排行榜頁 ══ -->
+<!-- ══ 排行榜＋比較頁 ══ -->
 <div class="page" id="pageLeaderboard">
-  <div class="page-title">排行榜</div>
-  <div class="history-player-row" style="justify-content:flex-end">
-    <button class="btn-sm" id="btnLoadLeaderboard">重新整理</button>
+  <!-- 排行榜檢視 -->
+  <div id="lbMainView" style="display:flex;flex-direction:column;gap:6px;flex:1;min-height:0">
+    <div style="display:flex;align-items:center;justify-content:space-between;flex-shrink:0">
+      <div class="page-title" style="margin:0">排行榜</div>
+      <button class="btn-sm" id="btnLoadLeaderboard">重新整理</button>
+    </div>
+    <div class="stats-list" id="leaderboardList"><div class="empty-hint">載入中…</div></div>
   </div>
-  <div class="stats-list" id="leaderboardList"><div class="empty-hint">載入中…</div></div>
+
+  <!-- 比較檢視 -->
+  <div id="lbVsView" style="display:none;flex-direction:column;gap:6px;flex:1;min-height:0">
+    <div style="display:flex;align-items:center;gap:8px;flex-shrink:0">
+      <button class="btn-sm" id="btnBackToLb" style="background:var(--card);color:var(--muted);border:1px solid var(--border)">← 返回</button>
+      <div class="page-title" style="margin:0;flex:1;text-align:center">對戰比較</div>
+    </div>
+    <div class="vs-header">
+      <div class="vs-select-wrap">
+        <label>球員 A</label>
+        <select class="select-sm" id="vsSelectA">
+          <option value="">請選擇</option>
+          <option>李岱柏</option><option>李咨亨</option><option>孫世展</option>
+          <option>邱晉倫</option><option>吳媮珊</option><option>劉伯鴻</option>
+          <option>孫世益</option><option>張雅雰</option><option>莊哲嘉</option>
+          <option>邱朝昱</option><option>陳騰九</option>
+        </select>
+      </div>
+      <div class="vs-badge">VS</div>
+      <div class="vs-select-wrap">
+        <label>球員 B</label>
+        <select class="select-sm" id="vsSelectB">
+          <option value="">請選擇</option>
+          <option>李岱柏</option><option>李咨亨</option><option>孫世展</option>
+          <option>邱晉倫</option><option>吳媮珊</option><option>劉伯鴻</option>
+          <option>孫世益</option><option>張雅雰</option><option>莊哲嘉</option>
+          <option>邱朝昱</option><option>陳騰九</option>
+        </select>
+      </div>
+    </div>
+    <button class="btn-sm" id="btnLoadVs" style="width:100%">比較</button>
+    <div class="vs-list" id="vsList"><div class="empty-hint">請選擇兩位球員後按比較</div></div>
+  </div>
 </div>
 
 <!-- ══ 競賽頁 ══ -->
@@ -1361,6 +1369,10 @@
     <svg viewBox="0 0 24 24"><path d="M19 3H5a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2V5a2 2 0 00-2-2zm-7 14l-5-5 1.41-1.41L12 14.17l7.59-7.59L21 8l-9 9z"/></svg>
     記錄
   </button>
+  <button class="nav-btn" data-page="pageTeam">
+    <svg viewBox="0 0 24 24"><path d="M17 12h-5v5h5v-5zM16 1v2H8V1H6v2H5c-1.11 0-1.99.9-1.99 2L3 19c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2h-1V1h-2zm3 18H5V8h14v11z"/></svg>
+    團隊
+  </button>
   <button class="nav-btn" data-page="pageHistory">
     <svg viewBox="0 0 24 24"><path d="M13 3a9 9 0 00-9 9H1l3.89 3.89.07.14L9 12H6a7 7 0 117 7c-1.93 0-3.68-.79-4.94-2.06L6.64 18.36A9 9 0 1013 3zm-1 5v5l4.28 2.54.72-1.21-3.5-2.08V8H12z"/></svg>
     歷史
@@ -1369,17 +1381,9 @@
     <svg viewBox="0 0 24 24"><path d="M5 9.2h3V19H5zM10.6 5h2.8v14h-2.8zm5.6 8H19v6h-2.8z"/></svg>
     統計
   </button>
-  <button class="nav-btn" data-page="pageVs">
-    <svg viewBox="0 0 24 24"><path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z"/></svg>
-    比較
-  </button>
   <button class="nav-btn" data-page="pageLeaderboard">
     <svg viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
     排行
-  </button>
-  <button class="nav-btn" data-page="pageTeam">
-    <svg viewBox="0 0 24 24"><path d="M17 12h-5v5h5v-5zM16 1v2H8V1H6v2H5c-1.11 0-1.99.9-1.99 2L3 19c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2h-1V1h-2zm3 18H5V8h14v11z"/></svg>
-    團隊
   </button>
   <button class="nav-btn" data-page="pageComp">
     <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 14H9V8h2v8zm4 0h-2V8h2v8z"/></svg>
@@ -2175,11 +2179,11 @@ async function loadLeaderboard() {
     const rankSymbol = i => i===0?"🥇":i===1?"🥈":i===2?"🥉":`${i+1}`;
     const rankCls    = i => i===0?"gold":i===1?"silver":i===2?"bronze":"other";
     ll.innerHTML = data.entries.map((e, i) => `
-      <div class="lb-item">
+      <div class="lb-item" style="cursor:pointer" onclick="openVsFromLb('${e.player}')">
         <div class="lb-rank ${rankCls(i)}">${rankSymbol(i)}</div>
-        <div>
+        <div style="flex:1">
           <div class="lb-name">${e.player}</div>
-          <div class="lb-games">${e.games} 場</div>
+          <div class="lb-games">${e.games} 場　<span style="color:var(--border);font-size:.65rem">點擊比較</span></div>
         </div>
         <div class="lb-scores">
           <div class="lb-best">${e.best}</div>
@@ -2192,7 +2196,28 @@ async function loadLeaderboard() {
 }
 
 document.getElementById("btnLoadLeaderboard").addEventListener("click", loadLeaderboard);
-document.querySelector("[data-page='pageLeaderboard']").addEventListener("click", loadLeaderboard);
+document.querySelector("[data-page='pageLeaderboard']").addEventListener("click", () => {
+  // 切回排行榜主檢視
+  document.getElementById("lbMainView").style.display = "flex";
+  document.getElementById("lbVsView").style.display = "none";
+  loadLeaderboard();
+});
+
+// 返回排行榜
+document.getElementById("btnBackToLb").addEventListener("click", () => {
+  document.getElementById("lbVsView").style.display = "none";
+  document.getElementById("lbMainView").style.display = "flex";
+  document.getElementById("vsList").innerHTML = `<div class="empty-hint">請選擇兩位球員後按比較</div>`;
+});
+
+// 從排行榜點選名字進行比較
+function openVsFromLb(playerName) {
+  document.getElementById("lbMainView").style.display = "none";
+  document.getElementById("lbVsView").style.display = "flex";
+  document.getElementById("vsSelectA").value = playerName;
+  document.getElementById("vsSelectB").value = "";
+  document.getElementById("vsList").innerHTML = `<div class="empty-hint">請再選一位球員後按比較</div>`;
+}
 
 // ══ 競賽頁 ══
 const ALL_PLAYERS = ["李岱柏","李咨亨","孫世展","邱晉倫","吳媮珊","劉伯鴻","孫世益","張雅雰","莊哲嘉","邱朝昱","陳騰九"];
