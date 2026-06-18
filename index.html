@@ -834,6 +834,73 @@
       outline: none;
     }
 
+    /* ══ 完成畫面各局回顧 ══ */
+    .done-scorecard {
+      width: 100%;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      overflow: hidden;
+      flex-shrink: 0;
+    }
+
+    .done-sc-half {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+    }
+
+    .done-sc-cell {
+      border-right: 1px solid var(--border);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .done-sc-cell:last-child { border-right: none; }
+
+    .done-sc-header {
+      font-size: .6rem;
+      color: var(--muted);
+      text-align: center;
+      padding: 2px 0;
+      background: #0f1923;
+      cursor: pointer;
+    }
+
+    .done-sc-header:hover { color: var(--accent); }
+
+    .done-sc-balls {
+      display: flex;
+      justify-content: flex-end;
+      gap: 1px;
+      padding: 2px 2px 1px;
+      background: #0f1923;
+      min-height: 18px;
+    }
+
+    .done-sc-ball {
+      flex: 1;
+      font-size: .65rem;
+      font-weight: bold;
+      text-align: center;
+      color: var(--text);
+    }
+
+    .done-sc-ball.strike { color: var(--strike); }
+    .done-sc-ball.spare  { color: var(--spare); }
+
+    .done-sc-score {
+      font-size: .75rem;
+      font-weight: bold;
+      color: var(--accent);
+      text-align: center;
+      padding: 2px 0;
+      min-height: 18px;
+    }
+
+    .done-sc-divider {
+      height: 1px;
+      background: var(--border);
+    }
+
     /* ══ 修改確認 Modal ══ */
     .modal-overlay {
       display: none;
@@ -1113,6 +1180,12 @@
   <div class="done-panel" id="donePanel">
     <div class="done-label">最終得分</div>
     <div class="done-score" id="finalScore">—</div>
+    <!-- 各局回顧計分表 -->
+    <div class="done-scorecard" id="doneScorecardWrap">
+      <div class="done-sc-half" id="doneSc1"></div>
+      <div class="done-sc-divider"></div>
+      <div class="done-sc-half" id="doneSc2"></div>
+    </div>
     <!-- 競賽標記開關 -->
     <div class="competition-toggle" id="compToggle">
       <span class="toggle-icon">🏆</span>
@@ -1811,6 +1884,29 @@ function showDone() {
   document.getElementById("finalScore").textContent = cum[9] ?? "？";
   document.getElementById("inputPanel").style.display = "none";
   document.getElementById("donePanel").classList.add("show");
+  renderDoneScorecard(cum);
+}
+
+function renderDoneScorecard(cum) {
+  function buildCell(fi) {
+    const fr = frames[fi];
+    if (!fr) return `<div class="done-sc-cell"><div class="done-sc-header">${FRAME_NAMES[fi].slice(1)}</div><div class="done-sc-balls"></div><div class="done-sc-score"></div></div>`;
+    const maxBalls = fi === 9 ? 3 : 2;
+    const balls = [fr.b1, fr.b2, fr.b3].slice(0, maxBalls);
+    const ballsHtml = balls.map(b => {
+      if (!b) return `<div class="done-sc-ball"></div>`;
+      const cls = b === "X" ? " strike" : b === "/" ? " spare" : "";
+      return `<div class="done-sc-ball${cls}">${b}</div>`;
+    }).join("");
+    const score = cum[fi] != null ? cum[fi] : "";
+    return `<div class="done-sc-cell">
+      <div class="done-sc-header" onclick="rollbackToFrame(${fi})">${FRAME_NAMES[fi].slice(1)}</div>
+      <div class="done-sc-balls">${ballsHtml}</div>
+      <div class="done-sc-score">${score}</div>
+    </div>`;
+  }
+  document.getElementById("doneSc1").innerHTML = [0,1,2,3,4].map(buildCell).join("");
+  document.getElementById("doneSc2").innerHTML = [5,6,7,8,9].map(buildCell).join("");
 }
 
 function doReset() {
@@ -1866,16 +1962,34 @@ async function fetchPlayerStats(player) {
   const records = data.records || [];
   const totals = records.map(r => parseInt(r.total, 10)).filter(n => !isNaN(n));
   let strikeFrames = 0, spareFrames = 0, totalFrames = 0;
+
+  // 各局平均分：frameSums[i] = { sum, count }
+  const frameSums = Array.from({length: 10}, () => ({ sum: 0, count: 0 }));
+
   records.forEach(r => {
     if (!r.frames) return;
-    r.frames.forEach(fr => {
+    r.frames.forEach((fr, fi) => {
       if (!fr.b1) return;
       totalFrames++;
       if (fr.b1 === "X") strikeFrames++;
       else if (fr.b2 === "/") spareFrames++;
     });
+    // 計算各局得分（從累計分差值得到各局分數）
+    const scores = r.frames.map(f => parseInt(f?.score || "0", 10));
+    scores.forEach((s, i) => {
+      if (!isNaN(s) && s > 0) {
+        const prev = i > 0 ? (parseInt(r.frames[i-1]?.score || "0", 10) || 0) : 0;
+        const frameScore = s - prev;
+        if (frameScore >= 0) {
+          frameSums[i].sum += frameScore;
+          frameSums[i].count++;
+        }
+      }
+    });
   });
-  return { records, totals, strikeFrames, spareFrames, totalFrames };
+
+  const frameAvgs = frameSums.map(f => f.count > 0 ? Math.round(f.sum / f.count) : null);
+  return { records, totals, strikeFrames, spareFrames, totalFrames, frameAvgs };
 }
 
 // ══ 歷史查詢 ══
@@ -1898,20 +2012,41 @@ async function loadHistory(player) {
 function renderHistoryList() {
   const list = document.getElementById("historyList");
   if (!currentHistoryRecords.length) { list.innerHTML = `<div class="empty-hint">尚無紀錄</div>`; return; }
-  list.innerHTML = currentHistoryRecords.map((r, idx) => {
+
+  // 按月份分組
+  const groups = {};
+  currentHistoryRecords.forEach((r, idx) => {
     const d = String(r.date).replace(/T[\s\S]*/, "").replace(/-/g, "/");
-    const codeTag = r.compCode
-      ? `<span style="color:var(--strike);font-size:.65rem;cursor:pointer" onclick="askEditCode(${idx})">🏆 ${r.compCode} ✏️</span>`
-      : r.isCompetition
-        ? `<span style="color:var(--muted);font-size:.65rem;cursor:pointer" onclick="askEditCode(${idx})">🏆 無代碼 ✏️</span>`
-        : `<span style="color:var(--border);font-size:.65rem;cursor:pointer" onclick="askEditCode(${idx})">＋ 設競賽代碼</span>`;
+    const parts = d.split("/");
+    const monthKey = parts.length >= 2 ? `${parts[0]}年${parts[1]}月` : "其他";
+    if (!groups[monthKey]) groups[monthKey] = [];
+    groups[monthKey].push({ r, idx });
+  });
+
+  list.innerHTML = Object.entries(groups).map(([month, items]) => {
+    const itemsHtml = items.map(({ r, idx }) => {
+      const d = String(r.date).replace(/T[\s\S]*/, "").replace(/-/g, "/");
+      const codeTag = r.compCode
+        ? `<span style="color:var(--strike);font-size:.65rem;cursor:pointer" onclick="askEditCode(${idx})">🏆 ${r.compCode} ✏️</span>`
+        : r.isCompetition
+          ? `<span style="color:var(--muted);font-size:.65rem;cursor:pointer" onclick="askEditCode(${idx})">🏆 無代碼 ✏️</span>`
+          : `<span style="color:var(--border);font-size:.65rem;cursor:pointer" onclick="askEditCode(${idx})">＋ 設競賽代碼</span>`;
+      return `
+      <div class="history-item" data-idx="${idx}">
+        <div>
+          <div class="history-date">${d} ${codeTag}</div>
+          <div class="history-frames">${r.balls}</div>
+        </div>
+        <div class="history-score">${r.total}</div>
+      </div>`;
+    }).join("");
+
     return `
-    <div class="history-item" data-idx="${idx}">
-      <div>
-        <div class="history-date">${d} ${codeTag}</div>
-        <div class="history-frames">${r.balls}</div>
+    <div style="flex-shrink:0">
+      <div style="font-size:.75rem;font-weight:bold;color:var(--muted);padding:4px 2px;border-bottom:1px solid var(--border);margin-bottom:4px">
+        ▼ ${month}（${items.length} 場）
       </div>
-      <div class="history-score">${r.total}</div>
+      ${itemsHtml}
     </div>`;
   }).join("");
 
@@ -2032,7 +2167,7 @@ document.getElementById("btnLoadStats").addEventListener("click", async () => {
   if (!player) { sl.innerHTML = `<div class="empty-hint">請先選擇球員</div>`; return; }
   sl.innerHTML = `<div class="loading-hint">載入中…</div>`;
   try {
-    const { totals, strikeFrames, spareFrames, totalFrames } = await fetchPlayerStats(player);
+    const { totals, strikeFrames, spareFrames, totalFrames, frameAvgs } = await fetchPlayerStats(player);
     if (!totals.length) { sl.innerHTML = `<div class="empty-hint">尚無紀錄</div>`; return; }
 
     const avg   = Math.round(totals.reduce((a,b) => a+b, 0) / totals.length);
@@ -2109,7 +2244,34 @@ document.getElementById("btnLoadStats").addEventListener("click", async () => {
           <div class="stat-card-sub">${spareFrames}/${totalFrames-strikeFrames} 局</div>
         </div>
       </div>
-      ${trendHtml}`;
+      ${trendHtml}
+      ${(() => {
+        const validAvgs = frameAvgs.filter(v => v !== null);
+        if (!validAvgs.length) return "";
+        const maxAvg = Math.max(...validAvgs);
+        const frameNames = ["一","二","三","四","五","六","七","八","九","十"];
+        const bars = frameAvgs.map((v, i) => {
+          if (v === null) return `<div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:2px">
+            <div style="flex:1"></div>
+            <div style="font-size:.6rem;color:var(--border)">—</div>
+            <div style="font-size:.6rem;color:var(--muted)">${frameNames[i]}</div>
+          </div>`;
+          const pct = Math.round(v / maxAvg * 100);
+          const isMin = v === Math.min(...validAvgs);
+          const color = isMin ? "#e74c3c" : "var(--accent)";
+          return `<div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:2px">
+            <div style="font-size:.58rem;color:${color};font-weight:bold">${v}</div>
+            <div style="flex:1;display:flex;align-items:flex-end;width:100%;padding:0 1px">
+              <div style="width:100%;height:${pct}%;background:${color};border-radius:2px 2px 0 0;opacity:.8;min-height:2px"></div>
+            </div>
+            <div style="font-size:.6rem;color:var(--muted)">${frameNames[i]}</div>
+          </div>`;
+        }).join("");
+        return `<div class="stat-card">
+          <div class="stat-card-title">各局平均分</div>
+          <div style="display:flex;height:60px;align-items:flex-end;gap:2px;margin-top:6px">${bars}</div>
+        </div>`;
+      })()}`;
   } catch(e) {
     sl.innerHTML = `<div class="empty-hint">載入失敗，請確認網路或 Apps Script URL</div>`;
   }
@@ -2543,22 +2705,41 @@ function tUpdateScoreDisplay() {
   document.getElementById("teamScoreValue").textContent = last !== undefined ? last : "—";
 }
 
-// ── 更新所有人分數總覽 ──
+// ── 更新所有人分數總覽（小計分卡格式）──
 function tUpdateScoreboard() {
   const sb = document.getElementById("gameScoreboard");
+  const frameNames = ["一","二","三","四","五","六","七","八","九","十"];
+
   sb.innerHTML = tPlayers.map((p, pi) => {
     const cum = tCalcCumulative(p);
     const last = [...cum].reverse().find(v => v !== null);
     const completedFrames = tFrames[p] ? tFrames[p].filter(Boolean).length : 0;
-    const frameStr = cum.slice(0, completedFrames).map(v => v ?? "…").join(" ");
     const isCur = pi === tCurPlayerIdx;
     const isDone = completedFrames >= 10;
-    return `<div class="game-scoreboard-row${isCur?" current-player":""}">
-      <div class="game-sb-name">${isCur?"▶ ":""}${p}</div>
-      <div class="game-sb-frames">${frameStr || "—"}</div>
-      <div class="game-sb-total${isDone?" done-player":""}">${last !== undefined ? last : "—"}</div>
+
+    // 10格累計分
+    const cells = frameNames.map((name, fi) => {
+      const isActive = fi === tCurFrame && isCur;
+      const score = cum[fi] != null ? cum[fi] : (fi < completedFrames ? "?" : "");
+      const cellBg = isActive ? "border:1px solid var(--accent)" : "border:1px solid var(--border)";
+      return `<div style="flex:1;${cellBg};border-radius:3px;overflow:hidden;min-width:0">
+        <div style="font-size:.45rem;color:var(--muted);text-align:center;background:#0f1923;padding:1px 0">${name}</div>
+        <div style="font-size:.6rem;font-weight:bold;color:${isDone&&fi===9?'var(--spare)':isActive?'var(--accent)':'var(--text)'};text-align:center;padding:1px 0;min-height:14px">${score}</div>
+      </div>`;
+    }).join("");
+
+    return `<div style="padding:4px 0;border-bottom:1px solid var(--border)">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:3px">
+        <div style="font-size:.78rem;font-weight:bold;color:${isCur?'var(--accent)':'var(--text)'}">${isCur?"▶ ":""}${p}</div>
+        <div style="font-size:.85rem;font-weight:bold;color:${isDone?'var(--spare)':isCur?'var(--accent)':'var(--muted)'}">${last !== undefined ? last : "—"}</div>
+      </div>
+      <div style="display:flex;gap:2px">${cells}</div>
     </div>`;
   }).join("");
+
+  // 移除最後一個 border-bottom
+  const rows = sb.querySelectorAll("[style*='border-bottom']");
+  if (rows.length) rows[rows.length-1].style.borderBottom = "none";
 }
 
 // ── 更新頂部標題 ──
