@@ -2705,41 +2705,32 @@ function tUpdateScoreDisplay() {
   document.getElementById("teamScoreValue").textContent = last !== undefined ? last : "—";
 }
 
-// ── 更新所有人分數總覽（小計分卡格式）──
+// ── 更新所有人分數總覽（精簡列表）──
 function tUpdateScoreboard() {
   const sb = document.getElementById("gameScoreboard");
-  const frameNames = ["一","二","三","四","五","六","七","八","九","十"];
 
-  sb.innerHTML = tPlayers.map((p, pi) => {
+  // 計算每人目前分數，排序用
+  const playerScores = tPlayers.map((p, pi) => {
     const cum = tCalcCumulative(p);
     const last = [...cum].reverse().find(v => v !== null);
     const completedFrames = tFrames[p] ? tFrames[p].filter(Boolean).length : 0;
     const isCur = pi === tCurPlayerIdx;
     const isDone = completedFrames >= 10;
+    return { p, pi, last, isCur, isDone };
+  });
 
-    // 10格累計分
-    const cells = frameNames.map((name, fi) => {
-      const isActive = fi === tCurFrame && isCur;
-      const score = cum[fi] != null ? cum[fi] : (fi < completedFrames ? "?" : "");
-      const cellBg = isActive ? "border:1px solid var(--accent)" : "border:1px solid var(--border)";
-      return `<div style="flex:1;${cellBg};border-radius:3px;overflow:hidden;min-width:0">
-        <div style="font-size:.45rem;color:var(--muted);text-align:center;background:#0f1923;padding:1px 0">${name}</div>
-        <div style="font-size:.6rem;font-weight:bold;color:${isDone&&fi===9?'var(--spare)':isActive?'var(--accent)':'var(--text)'};text-align:center;padding:1px 0;min-height:14px">${score}</div>
-      </div>`;
-    }).join("");
-
-    return `<div style="padding:4px 0;border-bottom:1px solid var(--border)">
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:3px">
-        <div style="font-size:.78rem;font-weight:bold;color:${isCur?'var(--accent)':'var(--text)'}">${isCur?"▶ ":""}${p}</div>
-        <div style="font-size:.85rem;font-weight:bold;color:${isDone?'var(--spare)':isCur?'var(--accent)':'var(--muted)'}">${last !== undefined ? last : "—"}</div>
-      </div>
-      <div style="display:flex;gap:2px">${cells}</div>
+  sb.innerHTML = `
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(90px,1fr));gap:4px">
+      ${playerScores.map(({ p, isCur, isDone, last }) => {
+        const nameColor = isCur ? "var(--accent)" : "var(--text)";
+        const scoreColor = isDone ? "var(--spare)" : isCur ? "var(--accent)" : "var(--muted)";
+        const border = isCur ? "border:1px solid var(--accent);box-shadow:0 0 4px rgba(59,158,222,.3)" : "border:1px solid var(--border)";
+        return `<div style="${border};border-radius:6px;padding:4px 6px;background:var(--bg)">
+          <div style="font-size:.7rem;color:${nameColor};font-weight:${isCur?'bold':'normal'};white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${isCur?"▶ ":""}${p}</div>
+          <div style="font-size:1rem;font-weight:bold;color:${scoreColor};text-align:right">${last !== undefined ? last : "—"}</div>
+        </div>`;
+      }).join("")}
     </div>`;
-  }).join("");
-
-  // 移除最後一個 border-bottom
-  const rows = sb.querySelectorAll("[style*='border-bottom']");
-  if (rows.length) rows[rows.length-1].style.borderBottom = "none";
 }
 
 // ── 更新頂部標題 ──
