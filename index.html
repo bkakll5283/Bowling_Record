@@ -2400,13 +2400,13 @@ function getSelectedPlayers() {
     .map(s => s.value).filter(Boolean);
 }
 
-// ── 建立球員選項 HTML（排除已選的）──
+// ── 建立球員選項 HTML（已被選走的不顯示）──
 function buildPlayerOptions(currentVal) {
   const selected = getSelectedPlayers();
-  return ALL_PLAYERS.map(p => {
-    const disabled = selected.includes(p) && p !== currentVal ? "disabled" : "";
-    return `<option value="${p}" ${p===currentVal?'selected':''} ${disabled}>${p}</option>`;
-  }).join("");
+  return ALL_PLAYERS
+    .filter(p => !selected.includes(p) || p === currentVal)
+    .map(p => `<option value="${p}" ${p===currentVal?'selected':''}>${p}</option>`)
+    .join("");
 }
 
 // ── 新增球員列 ──
@@ -2566,14 +2566,14 @@ function getTeamSelectedPlayers() {
     .map(s => s.value).filter(Boolean);
 }
 
-// ── 建立球員選項（排除已選的）──
+// ── 建立球員選項（已被選走的不顯示）──
 function buildTeamPlayerOptions(currentVal) {
   const selected = getTeamSelectedPlayers();
   return `<option value="">選擇球員</option>` +
-    TEAM_PLAYERS_ALL.map(p => {
-      const dis = selected.includes(p) && p !== currentVal ? "disabled" : "";
-      return `<option value="${p}" ${p===currentVal?"selected":""} ${dis}>${p}</option>`;
-    }).join("");
+    TEAM_PLAYERS_ALL
+      .filter(p => !selected.includes(p) || p === currentVal)
+      .map(p => `<option value="${p}" ${p===currentVal?"selected":""}>${p}</option>`)
+      .join("");
 }
 
 function refreshTeamSelects() {
