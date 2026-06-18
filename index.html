@@ -611,23 +611,88 @@
     .competition-toggle.on .toggle-switch::after { left: 19px; }
 
     /* ══ 競賽頁 ══ */
-    .comp-date-row {
+    /* 競賽代碼輸入 */
+    .comp-code-row {
       display: flex;
-      align-items: center;
       gap: 8px;
       flex-shrink: 0;
     }
-    .comp-date-row label { font-size: .8rem; color: var(--muted); white-space: nowrap; }
-    .comp-date-row input[type=date] {
+    .comp-code-row input {
       flex: 1;
       background: var(--bg);
       color: var(--text);
       border: 1px solid var(--border);
       border-radius: 6px;
-      padding: 5px 8px;
+      padding: 7px 10px;
       font-size: .9rem;
       font-family: inherit;
       outline: none;
+    }
+    .comp-code-row input:focus { border-color: var(--accent); }
+
+    /* 完成畫面競賽代碼輸入 */
+    .comp-code-input-row {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      width: 100%;
+    }
+    .comp-code-input-row label { font-size: .78rem; color: var(--muted); }
+    .comp-code-input-row input {
+      width: 100%;
+      background: var(--bg);
+      color: var(--text);
+      border: 1px solid var(--spare);
+      border-radius: 6px;
+      padding: 7px 10px;
+      font-size: .95rem;
+      font-family: inherit;
+      outline: none;
+      text-align: center;
+      font-weight: bold;
+    }
+
+    /* 加人按鈕 */
+    .comp-add-btn {
+      width: 100%;
+      padding: 5px;
+      background: none;
+      border: 1px dashed var(--border);
+      border-radius: 6px;
+      color: var(--muted);
+      font-size: .78rem;
+      cursor: pointer;
+      margin-top: 2px;
+      transition: border-color .15s, color .15s;
+    }
+    .comp-add-btn:hover { border-color: var(--accent); color: var(--accent); }
+
+    /* 每位球員的選擇列含刪除 */
+    .comp-member-row {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      margin-bottom: 4px;
+    }
+    .comp-member-row select {
+      flex: 1;
+      background: var(--bg);
+      color: var(--text);
+      border: 1px solid var(--border);
+      border-radius: 5px;
+      padding: 4px 6px;
+      font-size: .78rem;
+      font-family: inherit;
+      outline: none;
+    }
+    .comp-del-btn {
+      background: none;
+      border: none;
+      color: #e74c3c;
+      font-size: 1rem;
+      cursor: pointer;
+      padding: 2px 4px;
+      flex-shrink: 0;
     }
 
     .comp-teams {
@@ -873,9 +938,14 @@
       <span class="toggle-icon">🏆</span>
       <div>
         <div class="toggle-text">標記為競賽場次</div>
-        <div class="toggle-sub">競賽頁可依此篩選</div>
+        <div class="toggle-sub">開啟後輸入競賽代碼</div>
       </div>
       <div class="toggle-switch"></div>
+    </div>
+    <!-- 競賽代碼輸入（開啟競賽才顯示）-->
+    <div class="comp-code-input-row" id="compCodeRow" style="display:none">
+      <label>競賽代碼（與隊友輸入相同代碼）</label>
+      <input type="text" id="compCodeValue" placeholder="例如：0618-1" autocomplete="off">
     </div>
     <div id="msg"></div>
     <button class="btn btn-primary" id="btnSubmit">📤 上傳得分紀錄</button>
@@ -978,30 +1048,27 @@
 <div class="page" id="pageComp">
   <div class="page-title">分組競賽</div>
 
-  <!-- 日期選擇 -->
-  <div class="comp-date-row">
-    <label>日期</label>
-    <input type="date" id="compDate">
+  <!-- 競賽代碼查詢 -->
+  <div class="comp-code-row">
+    <input type="text" id="compCodeInput" placeholder="輸入競賽代碼（如：0618-1）" autocomplete="off">
+    <button class="btn-sm" id="btnLoadComp">查詢</button>
   </div>
 
-  <!-- 兩組人員選擇 -->
-  <div class="comp-teams">
-    <div class="comp-team-card">
+  <!-- 兩組動態人員選擇 -->
+  <div class="comp-teams" id="compTeams">
+    <div class="comp-team-card" id="teamCardA">
       <div class="comp-team-title team-a">第一組</div>
-      <div class="comp-member"><select class="comp-member-select" data-team="a" data-slot="0"><option value="">選擇球員</option><option>李岱柏</option><option>李咨亨</option><option>孫世展</option><option>邱晉倫</option><option>吳媮珊</option><option>劉伯鴻</option><option>孫世益</option><option>張雅雰</option><option>莊哲嘉</option><option>邱朝昱</option><option>陳騰九</option></select></div>
-      <div class="comp-member"><select class="comp-member-select" data-team="a" data-slot="1"><option value="">選擇球員</option><option>李岱柏</option><option>李咨亨</option><option>孫世展</option><option>邱晉倫</option><option>吳媮珊</option><option>劉伯鴻</option><option>孫世益</option><option>張雅雰</option><option>莊哲嘉</option><option>邱朝昱</option><option>陳騰九</option></select></div>
-      <div class="comp-member"><select class="comp-member-select" data-team="a" data-slot="2"><option value="">選擇球員</option><option>李岱柏</option><option>李咨亨</option><option>孫世展</option><option>邱晉倫</option><option>吳媮珊</option><option>劉伯鴻</option><option>孫世益</option><option>張雅雰</option><option>莊哲嘉</option><option>邱朝昱</option><option>陳騰九</option></select></div>
+      <div id="teamAMembers"></div>
+      <button class="comp-add-btn" onclick="addMember('a')">＋ 新增球員</button>
     </div>
-    <div class="comp-team-card">
+    <div class="comp-team-card" id="teamCardB">
       <div class="comp-team-title team-b">第二組</div>
-      <div class="comp-member"><select class="comp-member-select" data-team="b" data-slot="0"><option value="">選擇球員</option><option>李岱柏</option><option>李咨亨</option><option>孫世展</option><option>邱晉倫</option><option>吳媮珊</option><option>劉伯鴻</option><option>孫世益</option><option>張雅雰</option><option>莊哲嘉</option><option>邱朝昱</option><option>陳騰九</option></select></div>
-      <div class="comp-member"><select class="comp-member-select" data-team="b" data-slot="1"><option value="">選擇球員</option><option>李岱柏</option><option>李咨亨</option><option>孫世展</option><option>邱晉倫</option><option>吳媮珊</option><option>劉伯鴻</option><option>孫世益</option><option>張雅雰</option><option>莊哲嘉</option><option>邱朝昱</option><option>陳騰九</option></select></div>
-      <div class="comp-member"><select class="comp-member-select" data-team="b" data-slot="2"><option value="">選擇球員</option><option>李岱柏</option><option>李咨亨</option><option>孫世展</option><option>邱晉倫</option><option>吳媮珊</option><option>劉伯鴻</option><option>孫世益</option><option>張雅雰</option><option>莊哲嘉</option><option>邱朝昱</option><option>陳騰九</option></select></div>
+      <div id="teamBMembers"></div>
+      <button class="comp-add-btn" onclick="addMember('b')">＋ 新增球員</button>
     </div>
   </div>
 
-  <button class="btn-sm" id="btnLoadComp" style="width:100%">載入競賽結果</button>
-  <div class="comp-result" id="compResult"><div class="empty-hint">選好球員與日期後按載入</div></div>
+  <div class="comp-result" id="compResult"><div class="empty-hint">輸入競賽代碼查詢，或選好球員後按查詢</div></div>
 </div>
 
 <!-- ══ 修改確認 Modal ══ -->
@@ -1084,14 +1151,9 @@ let isCompetition = false;
 document.getElementById("compToggle").addEventListener("click", () => {
   isCompetition = !isCompetition;
   document.getElementById("compToggle").classList.toggle("on", isCompetition);
+  document.getElementById("compCodeRow").style.display = isCompetition ? "" : "none";
+  if (!isCompetition) document.getElementById("compCodeValue").value = "";
 });
-
-// ── 競賽頁日期預設今天 ──
-(function() {
-  const t = new Date();
-  const d = `${t.getFullYear()}-${String(t.getMonth()+1).padStart(2,"0")}-${String(t.getDate()).padStart(2,"0")}`;
-  document.getElementById("compDate").value = d;
-})();
 
 // ══ 計分卡 ══
 function buildMiniTable() {
@@ -1501,17 +1563,25 @@ document.getElementById("btnSubmit").addEventListener("click", async () => {
   const today = new Date();
   const date = `${today.getFullYear()}-${String(today.getMonth()+1).padStart(2,"0")}-${String(today.getDate()).padStart(2,"0")}`;
   const cum = calcCumulative();
+  const compCode = isCompetition ? document.getElementById("compCodeValue").value.trim() : "";
+  if (isCompetition && !compCode) {
+    msgEl.textContent = "⚠️ 請輸入競賽代碼";
+    msgEl.className = "error";
+    return;
+  }
   const payload = {
-    date, player,
-    isCompetition,
+    date, player, isCompetition,
+    compCode,
     frames: frames.map((fr, i) => ({ b1:fr.b1||"", b2:fr.b2||"", b3:fr.b3||"", score: cum[i]!=null?String(cum[i]):"" }))
   };
   msgEl.textContent = "傳送中…";
   try {
     await fetch(APPS_SCRIPT_URL, { method:"POST", mode:"no-cors", headers:{"Content-Type":"application/json"}, body:JSON.stringify(payload) });
-    msgEl.textContent = isCompetition ? "✅ 已上傳（競賽場次）！" : "✅ 已上傳！";
+    msgEl.textContent = isCompetition ? `✅ 已上傳（競賽：${compCode}）！` : "✅ 已上傳！";
     isCompetition = false;
     document.getElementById("compToggle").classList.remove("on");
+    document.getElementById("compCodeRow").style.display = "none";
+    document.getElementById("compCodeValue").value = "";
     setTimeout(() => doReset(), 1500);
   } catch(e) {
     msgEl.textContent = "❌ 上傳失敗：" + e.message;
@@ -1810,182 +1880,153 @@ document.getElementById("btnLoadLeaderboard").addEventListener("click", loadLead
 document.querySelector("[data-page='pageLeaderboard']").addEventListener("click", loadLeaderboard);
 
 // ══ 競賽頁 ══
-// 儲存各球員當日的場次清單 { player: [{date,total,isCompetition,idx}, ...] }
-let compPlayerData = {};
+const ALL_PLAYERS = ["李岱柏","李咨亨","孫世展","邱晉倫","吳媮珊","劉伯鴻","孫世益","張雅雰","莊哲嘉","邱朝昱","陳騰九"];
+let compScores = {}; // { player: score }
 
+// ── 取得已選球員（兩組合計）──
+function getSelectedPlayers() {
+  return [...document.querySelectorAll(".comp-member-row select")]
+    .map(s => s.value).filter(Boolean);
+}
+
+// ── 建立球員選項 HTML（排除已選的）──
+function buildPlayerOptions(currentVal) {
+  const selected = getSelectedPlayers();
+  return ALL_PLAYERS.map(p => {
+    const disabled = selected.includes(p) && p !== currentVal ? "disabled" : "";
+    return `<option value="${p}" ${p===currentVal?'selected':''} ${disabled}>${p}</option>`;
+  }).join("");
+}
+
+// ── 新增球員列 ──
+function addMember(team) {
+  const container = document.getElementById(team === 'a' ? 'teamAMembers' : 'teamBMembers');
+  const row = document.createElement("div");
+  row.className = "comp-member-row";
+  row.innerHTML = `
+    <select onchange="refreshAllSelects()">
+      <option value="">選擇球員</option>
+      ${buildPlayerOptions("")}
+    </select>
+    <button class="comp-del-btn" onclick="removeMember(this)">✕</button>`;
+  container.appendChild(row);
+}
+
+// ── 刪除球員列 ──
+function removeMember(btn) {
+  btn.closest(".comp-member-row").remove();
+  refreshAllSelects();
+}
+
+// ── 刷新所有選單（排除已選）──
+function refreshAllSelects() {
+  document.querySelectorAll(".comp-member-row select").forEach(sel => {
+    const cur = sel.value;
+    sel.innerHTML = `<option value="">選擇球員</option>` + buildPlayerOptions(cur);
+    sel.value = cur;
+  });
+}
+
+// 初始化每組各一個空選項
+addMember('a');
+addMember('b');
+
+// ── 查詢競賽結果 ──
 document.getElementById("btnLoadComp").addEventListener("click", async () => {
-  const date = document.getElementById("compDate").value;
+  const code = document.getElementById("compCodeInput").value.trim();
   const cr = document.getElementById("compResult");
-  if (!date) { cr.innerHTML = `<div class="empty-hint">請先選擇日期</div>`; return; }
 
-  // 收集兩組球員（過濾空選項與重複）
-  const teamA = [...document.querySelectorAll(".comp-member-select[data-team='a']")]
+  const teamA = [...document.querySelectorAll("#teamAMembers .comp-member-row select")]
     .map(s => s.value).filter(Boolean);
-  const teamB = [...document.querySelectorAll(".comp-member-select[data-team='b']")]
+  const teamB = [...document.querySelectorAll("#teamBMembers .comp-member-row select")]
     .map(s => s.value).filter(Boolean);
-  const allPlayers = [...new Set([...teamA, ...teamB])];
 
   if (!teamA.length || !teamB.length) {
     cr.innerHTML = `<div class="empty-hint">兩組各需至少一位球員</div>`; return;
+  }
+  if (!code) {
+    cr.innerHTML = `<div class="empty-hint">請輸入競賽代碼</div>`; return;
   }
 
   cr.innerHTML = `<div class="loading-hint">載入中…</div>`;
 
   try {
-    // 一次撈所有人當日紀錄
-    compPlayerData = {};
-    await Promise.all(allPlayers.map(async p => {
-      const res = await fetch(`${APPS_SCRIPT_URL}?action=history&player=${encodeURIComponent(p)}`);
-      const data = await res.json();
-      // 篩出當日場次（date 格式 yyyy/MM/dd）
-      const dateStr = date.replace(/-/g, "/");
-      compPlayerData[p] = (data.records || [])
-        .map((r, i) => ({ ...r, idx: i }))
-        .filter(r => String(r.date).replace(/T[\s\S]*/, "").replace(/-/g, "/") === dateStr);
-    }));
-    renderCompResult(teamA, teamB, date);
+    const res = await fetch(`${APPS_SCRIPT_URL}?action=competition&code=${encodeURIComponent(code)}`);
+    const data = await res.json();
+    // data.scores = { "李岱柏": "150", "李咨亨": "145", ... }
+    compScores = data.scores || {};
+    renderCompResult(teamA, teamB, code);
   } catch(e) {
-    cr.innerHTML = `<div class="empty-hint">載入失敗</div>`;
+    cr.innerHTML = `<div class="empty-hint">載入失敗，請確認網路或 Apps Script URL</div>`;
   }
 });
 
-function renderCompResult(teamA, teamB, date) {
+// ── 渲染競賽結果 ──
+function renderCompResult(teamA, teamB, code) {
   const cr = document.getElementById("compResult");
 
-  // 取每位球員選中的分數（預設選競賽場次，無競賽場次則選最後一場）
-  function getPlayerScore(player) {
-    const records = compPlayerData[player] || [];
-    if (!records.length) return { score: null, records, selectedIdx: -1 };
-    // 優先選有 isCompetition 的最後一筆
-    const compRecs = records.filter(r => r.isCompetition);
-    const defaultRec = compRecs.length ? compRecs[compRecs.length - 1] : records[records.length - 1];
-    return { score: parseInt(defaultRec.total, 10) || null, records, selectedIdx: defaultRec.idx };
+  function teamTotal(players) {
+    let sum = 0;
+    for (const p of players) {
+      const v = parseInt(compScores[p], 10);
+      if (isNaN(v)) return null;
+      sum += v;
+    }
+    return sum;
   }
 
-  // 建立一個 state 物件存各人選擇的 record index
-  const selections = {};
-  [...teamA, ...teamB].forEach(p => {
-    const { records } = getPlayerScore(p);
-    const compRecs = records.filter(r => r.isCompetition);
-    const def = compRecs.length ? compRecs[compRecs.length-1] : records[records.length-1];
-    selections[p] = def ? def.idx : -1;
-  });
+  const allPlayers = [...teamA, ...teamB];
+  const allScores = allPlayers.map(p => parseInt(compScores[p], 10)).filter(v => !isNaN(v));
+  const mvpScore = allScores.length ? Math.max(...allScores) : -1;
 
-  function buildTeamCol(players, teamCls, teamLabel) {
-    return `
-      <div class="comp-team-col">
-        <div style="font-size:.78rem;font-weight:bold;color:${teamCls==='a'?'var(--spare)':'var(--accent)'};text-align:center;margin-bottom:2px">${teamLabel}</div>
-        ${players.map(p => {
-          const records = compPlayerData[p] || [];
-          const opts = records.length
-            ? records.map((r, i) => {
-                const tag = r.isCompetition ? "🏆" : "";
-                return `<option value="${r.idx}" ${r.idx===selections[p]?'selected':''}>${tag}${r.date} ${r.total}分</option>`;
-              }).join("")
-            : `<option value="-1">無紀錄</option>`;
-          return `
-          <div class="comp-player-row" id="prow-${p.replace(/\s/g,'')}">
-            <div>
-              <div class="comp-player-name">${p}</div>
-              <div class="comp-select-row">
-                <span>場次</span>
-                <select class="comp-game-select" data-player="${p}" onchange="updateCompSelection('${p}', this.value)">${opts}</select>
-              </div>
-            </div>
-            <div class="comp-player-score" id="pscore-${p.replace(/\s/g,'')}">${getScoreByIdx(p, selections[p])}</div>
-          </div>`;
-        }).join("")}
-        <div class="comp-total" id="total-${teamCls}">${calcTeamTotal(players, selections)}</div>
-        <div class="comp-winner-badge" id="badge-${teamCls}"></div>
+  function buildCol(players, cls, label) {
+    const rows = players.map(p => {
+      const score = compScores[p] ?? "—";
+      const isMvp = parseInt(score, 10) === mvpScore && mvpScore >= 0;
+      const missing = !compScores[p];
+      return `<div class="comp-player-row">
+        <div class="comp-player-name">${p}${missing ? ' <span style="color:#e74c3c;font-size:.65rem">未上傳</span>' : ''}</div>
+        <div class="comp-player-score${isMvp?' mvp':''}">${score}</div>
       </div>`;
+    }).join("");
+
+    const tot = teamTotal(players);
+    const totStr = tot !== null ? tot : "—";
+    return `<div class="comp-team-col">
+      <div style="font-size:.78rem;font-weight:bold;color:${cls==='a'?'var(--spare)':'var(--accent)'};text-align:center;margin-bottom:4px">${label}</div>
+      ${rows}
+      <div class="comp-total" id="total-${cls}">${totStr}</div>
+      <div class="comp-winner-badge" id="badge-${cls}"></div>
+    </div>`;
   }
 
   cr.innerHTML = `
+    <div style="font-size:.72rem;color:var(--muted);text-align:center;margin-bottom:4px">代碼：${code}</div>
     <div class="comp-scoreboard">
-      ${buildTeamCol(teamA, 'a', '第一組')}
+      ${buildCol(teamA, 'a', '第一組')}
       <div class="comp-divider"><div class="comp-vs">VS</div></div>
-      ${buildTeamCol(teamB, 'b', '第二組')}
+      ${buildCol(teamB, 'b', '第二組')}
     </div>`;
 
-  updateWinnerBadge(teamA, teamB, selections);
-}
-
-function getScoreByIdx(player, idx) {
-  const records = compPlayerData[player] || [];
-  const r = records.find(r => r.idx === idx);
-  return r ? r.total : "—";
-}
-
-function calcTeamTotal(players, selections) {
-  let sum = 0, valid = true;
-  players.forEach(p => {
-    const s = parseInt(getScoreByIdx(p, selections[p]), 10);
-    if (isNaN(s)) { valid = false; return; }
-    sum += s;
-  });
-  return valid ? sum : "—";
-}
-
-function updateWinnerBadge(teamA, teamB, selections) {
-  const tA = calcTeamTotal(teamA, selections);
-  const tB = calcTeamTotal(teamB, selections);
-  const elA = document.getElementById("badge-a");
-  const elB = document.getElementById("badge-b");
-  const totA = document.getElementById("total-a");
-  const totB = document.getElementById("total-b");
-  if (!elA || !elB) return;
-
-  if (tA === "—" || tB === "—") { elA.textContent = ""; elB.textContent = ""; return; }
-
-  if (tA > tB) {
-    totA.className = "comp-total win"; totB.className = "comp-total lose";
-    elA.className = "comp-winner-badge win"; elA.textContent = `🏆 勝 (+${tA-tB})`;
-    elB.className = "comp-winner-badge lose"; elB.textContent = "負";
-  } else if (tB > tA) {
-    totB.className = "comp-total win"; totA.className = "comp-total lose";
-    elB.className = "comp-winner-badge win"; elB.textContent = `🏆 勝 (+${tB-tA})`;
-    elA.className = "comp-winner-badge lose"; elA.textContent = "負";
-  } else {
-    totA.className = "comp-total tie"; totB.className = "comp-total tie";
-    elA.className = "comp-winner-badge tie"; elA.textContent = "平手";
-    elB.className = "comp-winner-badge tie"; elB.textContent = "平手";
+  // 勝負判斷
+  const tA = teamTotal(teamA), tB = teamTotal(teamB);
+  const elA = document.getElementById("badge-a"), elB = document.getElementById("badge-b");
+  const totA = document.getElementById("total-a"), totB = document.getElementById("total-b");
+  if (tA !== null && tB !== null) {
+    if (tA > tB) {
+      totA.className="comp-total win"; totB.className="comp-total lose";
+      elA.className="comp-winner-badge win"; elA.textContent=`🏆 勝 (+${tA-tB})`;
+      elB.className="comp-winner-badge lose"; elB.textContent="負";
+    } else if (tB > tA) {
+      totB.className="comp-total win"; totA.className="comp-total lose";
+      elB.className="comp-winner-badge win"; elB.textContent=`🏆 勝 (+${tB-tA})`;
+      elA.className="comp-winner-badge lose"; elA.textContent="負";
+    } else {
+      totA.className="comp-total tie"; totB.className="comp-total tie";
+      elA.className="comp-winner-badge tie"; elA.textContent="平手";
+      elB.className="comp-winner-badge tie"; elB.textContent="平手";
+    }
   }
-
-  // 標記最高分球員
-  const allPlayers = [...document.querySelectorAll(".comp-game-select")];
-  const scores = allPlayers.map(s => ({ p: s.dataset.player, v: parseInt(getScoreByIdx(s.dataset.player, parseInt(s.value)), 10) }));
-  const maxScore = Math.max(...scores.map(s => s.v).filter(v => !isNaN(v)));
-  scores.forEach(({ p, v }) => {
-    const el = document.getElementById(`pscore-${p.replace(/\s/g,'')}`);
-    if (el) el.className = "comp-player-score" + (v === maxScore ? " mvp" : "");
-  });
-}
-
-// 球員改選場次時即時更新
-function updateCompSelection(player, idxStr) {
-  const idx = parseInt(idxStr, 10);
-  // 找這個球員屬於哪一組
-  const teamA = [...document.querySelectorAll(".comp-member-select[data-team='a']")].map(s=>s.value).filter(Boolean);
-  const teamB = [...document.querySelectorAll(".comp-member-select[data-team='b']")].map(s=>s.value).filter(Boolean);
-
-  // 重新收集所有人目前選擇
-  const selections = {};
-  document.querySelectorAll(".comp-game-select").forEach(sel => {
-    selections[sel.dataset.player] = parseInt(sel.value, 10);
-  });
-  selections[player] = idx;
-
-  // 更新個人分數顯示
-  const scoreEl = document.getElementById(`pscore-${player.replace(/\s/g,'')}`);
-  if (scoreEl) scoreEl.textContent = getScoreByIdx(player, idx);
-
-  // 更新組總分
-  const totA = document.getElementById("total-a");
-  const totB = document.getElementById("total-b");
-  if (totA) totA.textContent = calcTeamTotal(teamA, selections);
-  if (totB) totB.textContent = calcTeamTotal(teamB, selections);
-
-  updateWinnerBadge(teamA, teamB, selections);
 }
 
 // ── 啟動 ──
